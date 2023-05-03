@@ -16,6 +16,10 @@ pub enum ComputeCapability {
     Compute72,
     Compute75,
     Compute80,
+    Compute86,
+    Compute87,
+    Compute89,
+    Compute90,
 }
 
 impl ComputeCapability {
@@ -42,6 +46,10 @@ impl ComputeCapability {
             "720" => ComputeCapability::Compute72,
             "750" => ComputeCapability::Compute75,
             "800" => ComputeCapability::Compute80,
+            "860" => ComputeCapability::Compute86,
+            "870" => ComputeCapability::Compute87,
+            "890" => ComputeCapability::Compute89,
+            "900" => ComputeCapability::Compute90,
             _ => panic!("CUDA_ARCH had an invalid value"),
         }
     }

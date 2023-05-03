@@ -54,6 +54,9 @@ pub enum JitTarget {
     Compute75 = 75,
     Compute80 = 80,
     Compute86 = 86,
+    Compute87 = 87,
+    Compute89 = 89,
+    Compute90 = 90,
 }
 
 /// How to handle cases where a loaded module's data does not contain an exact match for the

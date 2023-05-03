@@ -254,6 +254,10 @@ impl FromStr for NvvmOption {
                     "72" => NvvmArch::Compute72,
                     "75" => NvvmArch::Compute75,
                     "80" => NvvmArch::Compute80,
+                    "86" => NvvmArch::Compute86,
+                    "87" => NvvmArch::Compute87,
+                    "89" => NvvmArch::Compute89,
+                    "90" => NvvmArch::Compute90,
                     _ => return Err("unknown arch"),
                 };
                 Self::Arch(arch)
@@ -266,18 +270,38 @@ impl FromStr for NvvmOption {
 /// Nvvm architecture, default is `Compute52`
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NvvmArch {
+    /// Kepler architecture (deprecated since CUDA 9).
     Compute35,
+    /// Kepler architecture (deprecated since CUDA 9).
     Compute37,
+    /// Maxwell architecture (deprecated since CUDA 11.6).
     Compute50,
+    /// Maxwell architecture (deprecated since CUDA 11.6).
     Compute52,
+    /// Maxwell architecture (deprecated since CUDA 11.6) for 1st gen Jetson devices.
     Compute53,
+    /// Pascal architecture.
     Compute60,
+    /// Pascal architecture.
     Compute61,
+    /// Pascal architecture.
     Compute62,
+    /// Volta architecture.
     Compute70,
+    /// Volta architecture (Xavier devices).
     Compute72,
+    /// Turing architecture.
     Compute75,
+    /// Ampere architecture.
     Compute80,
+    /// Ampere architecture.
+    Compute86,
+    /// Ampere architecture (Orin devices).
+    Compute87,
+    /// Ada Lovelace architecture.
+    Compute89,
+    /// Hopper architecture.
+    Compute90,
 }
 
 impl Display for NvvmArch {
@@ -432,6 +456,10 @@ mod tests {
             "-arch=compute_72",
             "-arch=compute_75",
             "-arch=compute_80",
+            "-arch=compute_86",
+            "-arch=compute_87",
+            "-arch=compute_89",
+            "-arch=compute_90",
             "-ftz=1",
             "-prec-sqrt=0",
             "-prec-div=0",
@@ -453,6 +481,10 @@ mod tests {
             Arch(Compute72),
             Arch(Compute75),
             Arch(Compute80),
+            Arch(Compute86),
+            Arch(Compute87),
+            Arch(Compute89),
+            Arch(Compute90),
             Ftz,
             FastSqrt,
             FastDiv,
