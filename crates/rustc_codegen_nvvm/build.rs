@@ -18,10 +18,10 @@ static REQUIRED_MAJOR_LLVM_VERSION: u8 = 7;
 fn main() {
     rustc_llvm_build();
 
-    // this is set by cuda_builder, but in case somebody is using the codegen
-    // manually, default to 520 (which is what nvvm defaults to).
+    // This is set by `cuda_builder`, but in case somebody is using the codegen manually, default to
+    // 610 (which is what NVVM 2.0 defaults to).
     if option_env!("CUDA_ARCH").is_none() {
-        println!("cargo:rustc-env=CUDA_ARCH=520")
+        println!("cargo:rustc-env=CUDA_ARCH=610")
     }
 }
 
@@ -53,20 +53,26 @@ pub fn output(cmd: &mut Command) -> String {
 fn target_to_llvm_prebuilt(target: &str) -> String {
     let base = match target {
         "x86_64-pc-windows-msvc" => "windows-x86_64",
-        // NOTE(RDambrosio016): currently disabled because of weird issues with segfaults and building the C++ shim
+        // NOTE(RDambrosio016): currently disabled because of weird issues with segfaults and
+        // building the C++ shim
         // "x86_64-unknown-linux-gnu" => "linux-x86_64",
-        _ => panic!("Unsupported target with no matching prebuilt LLVM: `{}`, install LLVM and set LLVM_CONFIG", target)
+        _ => panic!(
+            "Unsupported target with no matching prebuilt LLVM: `{}`, install LLVM and set LLVM_CONFIG",
+            target
+        )
     };
     format!("{}.tar.xz", base)
 }
 
 fn find_llvm_config(target: &str) -> PathBuf {
-    // first, if LLVM_CONFIG is set then see if its llvm version if 7.x, if so, use that.
+    // First, if `LLVM_CONFIG` is set, then check that it is LLVM 7.x. If so, use that.
     let config_env = tracked_env_var_os("LLVM_CONFIG");
-    // if LLVM_CONFIG is not set, try using llvm-config as a normal app in PATH.
+
+    // If `LLVM_CONFIG` is not set, try using `llvm-config` as a normal app in the binary path
+    // environment variable.
     let path_to_try = config_env.unwrap_or_else(|| "llvm-config".into());
 
-    // if USE_PREBUILT_LLVM is set to 1 then download prebuilt llvm without trying llvm-config
+    // If `USE_PREBUILT_LLVM` is set to 1, then download prebuilt LLVM without trying `llvm-config`.
     if tracked_env_var_os("USE_PREBUILT_LLVM") != Some("1".into()) {
         let cmd = Command::new(&path_to_try).arg("--version").output();
 
@@ -78,7 +84,7 @@ fn find_llvm_config(target: &str) -> PathBuf {
         }
     }
 
-    // otherwise, download prebuilt LLVM.
+    // Otherwise, download prebuilt LLVM.
     println!("cargo:warning=Downloading prebuilt LLVM");
     let mut url = tracked_env_var_os("PREBUILT_LLVM_URL")
         .map(|x| x.to_string_lossy().to_string())
@@ -91,8 +97,8 @@ fn find_llvm_config(target: &str) -> PathBuf {
     let mut easy = Easy::new();
 
     easy.url(&url).unwrap();
-    let _redirect = easy.follow_location(true).unwrap();
-    let mut xz_encoded = Vec::with_capacity(20_000_000); // 20mb
+    easy.follow_location(true).unwrap();
+    let mut xz_encoded = Vec::with_capacity(20_000_000); // 20 MB
     {
         let mut transfer = easy.transfer();
         transfer
@@ -109,7 +115,8 @@ fn find_llvm_config(target: &str) -> PathBuf {
     let decompressor = XzDecoder::new(xz_encoded.as_slice());
     let mut ar = Archive::new(decompressor);
 
-    ar.unpack(&out).expect("Failed to unpack LLVM to LLVM dir");
+    ar.unpack(&out)
+        .expect("Failed to unpack LLVM to LLVM directory");
     let out_path = PathBuf::from(out).join(prebuilt_name.strip_suffix(".tar.xz").unwrap());
 
     println!("cargo:rerun-if-changed={}", out_path.display());
@@ -120,8 +127,8 @@ fn find_llvm_config(target: &str) -> PathBuf {
 }
 
 fn detect_llvm_link() -> (&'static str, &'static str) {
-    // Force the link mode we want, preferring static by default, but
-    // possibly overridden by `configure --enable-llvm-link-shared`.
+    // Force the link mode we want, preferring static by default, butpossibly overridden by
+    // `configure --enable-llvm-link-shared`.
     if tracked_env_var_os("LLVM_LINK_SHARED").is_some() {
         ("dylib", "--link-shared")
     } else {
@@ -147,7 +154,7 @@ fn rustc_llvm_build() {
     for component in required_components {
         assert!(
             components.contains(component),
-            "require llvm component {} but wasn't found",
+            "LLVM component `{}` is required but wasn't found",
             component
         );
     }
@@ -163,17 +170,12 @@ fn rustc_llvm_build() {
     let mut cfg = cc::Build::new();
     cfg.warnings(false);
     for flag in cxxflags.split_whitespace() {
-        if flag.starts_with("-flto") {
-            continue;
-        }
-        // ignore flags that aren't supported in gcc 8
-        if flag == "-Wcovered-switch-default" {
-            continue;
-        }
-        if flag == "-Wstring-conversion" {
-            continue;
-        }
-        if flag == "-Werror=unguarded-availability-new" {
+        // Ignore Link-Time Optimizations (LTO) and flags that aren't supported in GCC 8
+        if flag.starts_with("-flto")
+            || flag == "-Wcovered-switch-default"
+            || flag == "-Wstring-conversion"
+            || flag == "-Werror=unguarded-availability-new"
+        {
             continue;
         }
 
@@ -200,9 +202,9 @@ fn rustc_llvm_build() {
 
     let (llvm_kind, llvm_link_arg) = detect_llvm_link();
 
-    // Link in all LLVM libraries, if we're using the "wrong" llvm-config then
-    // we don't pick up system libs because unfortunately they're for the host
-    // of llvm-config, not the target that we're attempting to link.
+    // Link in all LLVM libraries, if we're using the "wrong" `llvm-config` then we don't pick up
+    // system libs because unfortunately they're for the host of `llvm-config`, not the target that
+    // we're attempting to link.
     let mut cmd = Command::new(&llvm_config);
     cmd.arg(llvm_link_arg).arg("--libs");
 
@@ -232,11 +234,10 @@ fn rustc_llvm_build() {
             continue;
         };
 
-        // Don't need or want this library, but LLVM's CMake build system
-        // doesn't provide a way to disable it, so filter it here even though we
-        // may or may not have built it. We don't reference anything from this
-        // library and it otherwise may just pull in extra dependencies on
-        // libedit which we don't want
+        // Don't need or want this library, but LLVM's CMake build system doesn't provide a way to
+        // disable it, so filter it here even though we may or may not have built it. We don't
+        // reference anything from this library and it otherwise may just pull in extra dependencies
+        // on `libedit` which we don't want.
         if name == "LLVMLineEditor" {
             continue;
         }
@@ -255,10 +256,9 @@ fn rustc_llvm_build() {
 
     // LLVM ldflags
     //
-    // If we're a cross-compile of LLVM then unfortunately we can't trust these
-    // ldflags (largely where all the LLVM libs are located). Currently just
-    // hack around this by replacing the host triple with the target and pray
-    // that those -L directories are the same!
+    // If we're a cross-compile of LLVM then unfortunately we can't trust these `ldflags` (largely
+    // where all the LLVM libraries are located). Currently, we just hack around this by replacing
+    // the host triple with the target and pray that those `-L` directories are the same!
     let mut cmd = Command::new(&llvm_config);
     cmd.arg(llvm_link_arg).arg("--ldflags");
     for lib in output(&mut cmd).split_whitespace() {
@@ -271,10 +271,9 @@ fn rustc_llvm_build() {
         }
     }
 
-    // Some LLVM linker flags (-L and -l) may be needed even when linking
-    // rustc_llvm, for example when using static libc++, we may need to
-    // manually specify the library search path and -ldl -lpthread as link
-    // dependencies.
+    // Some LLVM linker flags (`-L` and `-l`) may be needed even when linking `rustc_llvm`, for
+    // example when using static `libc++`, we may need to manually specify the library search path
+    // and `-ldl -lpthread` as link dependencies.
     let llvm_linker_flags = tracked_env_var_os("LLVM_LINKER_FLAGS");
     if let Some(s) = llvm_linker_flags {
         for lib in s.into_string().unwrap().split_whitespace() {
@@ -306,7 +305,7 @@ fn rustc_llvm_build() {
         "stdc++"
     };
 
-    // RISC-V requires libatomic for sub-word atomic operations
+    // RISC-V requires `libatomic` for sub-word atomic operations
     if target.starts_with("riscv") {
         println!("cargo:rustc-link-lib=atomic");
     }
@@ -332,8 +331,7 @@ fn rustc_llvm_build() {
         }
     }
 
-    // Libstdc++ depends on pthread which Rust doesn't link on MinGW
-    // since nothing else requires it.
+    // `libstdc++` depends on Pthread which Rust doesn't link on MinGW since nothing else requires it.
     if target.contains("windows-gnu") {
         println!("cargo:rustc-link-lib=static-nobundle=pthread");
     }
@@ -341,7 +339,7 @@ fn rustc_llvm_build() {
 
 #[cfg(not(target_os = "windows"))]
 fn link_llvm_system_libs(llvm_config: &Path, components: &[&str]) {
-    let mut cmd = Command::new(&llvm_config);
+    let mut cmd = Command::new(llvm_config);
     cmd.arg("--system-libs");
 
     for comp in components {
