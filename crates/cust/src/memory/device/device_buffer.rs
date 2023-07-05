@@ -391,8 +391,42 @@ impl<T: DeviceCopy> DeviceBuffer<T> {
         Ok(uninit)
     }
 
+    /// Allocate a new device buffer of the same size as `device_slice`, initialized with a clone of
+    /// the data in `device_slice`.
+    ///
+    /// # Errors
+    ///
+    /// If the allocation fails, returns the error from CUDA.
+    pub fn from_device_slice(device_slice: &DeviceSlice<T>) -> CudaResult<Self> {
+        unsafe {
+            let mut uninit = DeviceBuffer::uninitialized(device_slice.len())?;
+            uninit.copy_from(device_slice)?;
+            Ok(uninit)
+        }
+    }
+    /// Asynchronously allocate a new buffer of the same size as `slice`, initialized
+    /// with a clone of the data in `slice`.
+    ///
+    /// # Safety
+    ///
+    /// For why this function is unsafe, see [AsyncCopyDestination](trait.AsyncCopyDestination.html)
+    ///
+    /// # Errors
+    ///
+    /// If the allocation fails, returns the error from CUDA.
+    pub unsafe fn from_device_slice_async(device_slice: &[T], stream: &Stream) -> CudaResult<Self> {
+        let mut uninit = DeviceBuffer::uninitialized_async(device_slice.len(), stream)?;
+        uninit.async_copy_from(device_slice, stream)?;
+        Ok(uninit)
+    }
+
     /// Explicitly creates a [`DeviceSlice`] from this buffer.
     pub fn as_slice(&self) -> &DeviceSlice<T> {
+        self
+    }
+
+    /// Explicitly creates a mutable [`DeviceSlice`] from this buffer.
+    pub fn as_mut_slice(&mut self) -> &mut DeviceSlice<T> {
         self
     }
 }
