@@ -1,11 +1,13 @@
 [package]
-name = "gemm"
-version = "0.1.0"
+name = "bench_dgemm"
+version = "0.2.0"
 edition = "2021"
 
 [dependencies]
+clap = { version = "3.2.23", features = ["derive"] }
 cust = { version = "0.3", path = "../../../../crates/cust" }
 nanorand = "0.6.1"
+vek = "0.15"
 
 [build-dependencies]
 cuda_builder = { version = "0.3", path = "../../../../crates/cuda_builder" }
