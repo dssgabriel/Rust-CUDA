@@ -73,6 +73,12 @@ pub struct OptixDenoiser_t {
     _unused: [u8; 0],
 }
 pub type OptixDenoiser = *mut OptixDenoiser_t;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct OptixTask_t {
+    _unused: [u8; 0],
+}
+pub type OptixTask = *mut OptixTask_t;
 pub type OptixTraversableHandle = ::std::os::raw::c_ulonglong;
 pub type OptixVisibilityMask = ::std::os::raw::c_uint;
 impl OptixResult {
@@ -118,7 +124,7 @@ impl OptixResult {
     pub const OPTIX_ERROR_VALIDATION_FAILURE: OptixResult = OptixResult(7053);
 }
 impl OptixResult {
-    pub const OPTIX_ERROR_INVALID_PTX: OptixResult = OptixResult(7200);
+    pub const OPTIX_ERROR_INVALID_INPUT: OptixResult = OptixResult(7200);
 }
 impl OptixResult {
     pub const OPTIX_ERROR_INVALID_LAUNCH_PARAMETER: OptixResult = OptixResult(7201);
@@ -154,7 +160,16 @@ impl OptixResult {
     pub const OPTIX_ERROR_DENOISER_NOT_INITIALIZED: OptixResult = OptixResult(7301);
 }
 impl OptixResult {
-    pub const OPTIX_ERROR_ACCEL_NOT_COMPATIBLE: OptixResult = OptixResult(7400);
+    pub const OPTIX_ERROR_NOT_COMPATIBLE: OptixResult = OptixResult(7400);
+}
+impl OptixResult {
+    pub const OPTIX_ERROR_PAYLOAD_TYPE_MISMATCH: OptixResult = OptixResult(7500);
+}
+impl OptixResult {
+    pub const OPTIX_ERROR_PAYLOAD_TYPE_RESOLUTION_FAILED: OptixResult = OptixResult(7501);
+}
+impl OptixResult {
+    pub const OPTIX_ERROR_PAYLOAD_TYPE_ID_INVALID: OptixResult = OptixResult(7502);
 }
 impl OptixResult {
     pub const OPTIX_ERROR_NOT_SUPPORTED: OptixResult = OptixResult(7800);
@@ -178,6 +193,9 @@ impl OptixResult {
     pub const OPTIX_ERROR_LIBRARY_UNLOAD_FAILURE: OptixResult = OptixResult(7806);
 }
 impl OptixResult {
+    pub const OPTIX_ERROR_DEVICE_OUT_OF_MEMORY: OptixResult = OptixResult(7807);
+}
+impl OptixResult {
     pub const OPTIX_ERROR_CUDA_ERROR: OptixResult = OptixResult(7900);
 }
 impl OptixResult {
@@ -188,9 +206,9 @@ impl OptixResult {
 }
 #[repr(transparent)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub struct OptixResult(pub ::std::os::raw::c_int);
+pub struct OptixResult(pub ::std::os::raw::c_uint);
 pub mod OptixDeviceProperty {
-    pub type Type = ::std::os::raw::c_int;
+    pub type Type = ::std::os::raw::c_uint;
     pub const OPTIX_DEVICE_PROPERTY_LIMIT_MAX_TRACE_DEPTH: Type = 8193;
     pub const OPTIX_DEVICE_PROPERTY_LIMIT_MAX_TRAVERSABLE_GRAPH_DEPTH: Type = 8194;
     pub const OPTIX_DEVICE_PROPERTY_LIMIT_MAX_PRIMITIVES_PER_GAS: Type = 8195;
@@ -212,8 +230,8 @@ pub type OptixLogCallback = ::std::option::Option<
 pub const OptixDeviceContextValidationMode_OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_OFF:
     OptixDeviceContextValidationMode = 0;
 pub const OptixDeviceContextValidationMode_OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL:
-    OptixDeviceContextValidationMode = -1;
-pub type OptixDeviceContextValidationMode = ::std::os::raw::c_int;
+    OptixDeviceContextValidationMode = 4294967295;
+pub type OptixDeviceContextValidationMode = ::std::os::raw::c_uint;
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct OptixDeviceContextOptions {
@@ -233,11 +251,11 @@ impl Default for OptixDeviceContextOptions {
 }
 pub const OptixHitKind_OPTIX_HIT_KIND_TRIANGLE_FRONT_FACE: OptixHitKind = 254;
 pub const OptixHitKind_OPTIX_HIT_KIND_TRIANGLE_BACK_FACE: OptixHitKind = 255;
-pub type OptixHitKind = ::std::os::raw::c_int;
+pub type OptixHitKind = ::std::os::raw::c_uint;
 pub const OptixIndicesFormat_OPTIX_INDICES_FORMAT_NONE: OptixIndicesFormat = 0;
 pub const OptixIndicesFormat_OPTIX_INDICES_FORMAT_UNSIGNED_SHORT3: OptixIndicesFormat = 8450;
 pub const OptixIndicesFormat_OPTIX_INDICES_FORMAT_UNSIGNED_INT3: OptixIndicesFormat = 8451;
-pub type OptixIndicesFormat = ::std::os::raw::c_int;
+pub type OptixIndicesFormat = ::std::os::raw::c_uint;
 pub const OptixVertexFormat_OPTIX_VERTEX_FORMAT_NONE: OptixVertexFormat = 0;
 pub const OptixVertexFormat_OPTIX_VERTEX_FORMAT_FLOAT3: OptixVertexFormat = 8481;
 pub const OptixVertexFormat_OPTIX_VERTEX_FORMAT_FLOAT2: OptixVertexFormat = 8482;
@@ -245,10 +263,187 @@ pub const OptixVertexFormat_OPTIX_VERTEX_FORMAT_HALF3: OptixVertexFormat = 8483;
 pub const OptixVertexFormat_OPTIX_VERTEX_FORMAT_HALF2: OptixVertexFormat = 8484;
 pub const OptixVertexFormat_OPTIX_VERTEX_FORMAT_SNORM16_3: OptixVertexFormat = 8485;
 pub const OptixVertexFormat_OPTIX_VERTEX_FORMAT_SNORM16_2: OptixVertexFormat = 8486;
-pub type OptixVertexFormat = ::std::os::raw::c_int;
+pub type OptixVertexFormat = ::std::os::raw::c_uint;
 pub const OptixTransformFormat_OPTIX_TRANSFORM_FORMAT_NONE: OptixTransformFormat = 0;
 pub const OptixTransformFormat_OPTIX_TRANSFORM_FORMAT_MATRIX_FLOAT12: OptixTransformFormat = 8673;
-pub type OptixTransformFormat = ::std::os::raw::c_int;
+pub type OptixTransformFormat = ::std::os::raw::c_uint;
+pub const OptixDisplacementMicromapBiasAndScaleFormat_OPTIX_DISPLACEMENT_MICROMAP_BIAS_AND_SCALE_FORMAT_NONE : OptixDisplacementMicromapBiasAndScaleFormat = 0 ;
+pub const OptixDisplacementMicromapBiasAndScaleFormat_OPTIX_DISPLACEMENT_MICROMAP_BIAS_AND_SCALE_FORMAT_FLOAT2 : OptixDisplacementMicromapBiasAndScaleFormat = 8769 ;
+pub const OptixDisplacementMicromapBiasAndScaleFormat_OPTIX_DISPLACEMENT_MICROMAP_BIAS_AND_SCALE_FORMAT_HALF2 : OptixDisplacementMicromapBiasAndScaleFormat = 8770 ;
+pub type OptixDisplacementMicromapBiasAndScaleFormat = ::std::os::raw::c_uint;
+pub const OptixDisplacementMicromapDirectionFormat_OPTIX_DISPLACEMENT_MICROMAP_DIRECTION_FORMAT_NONE : OptixDisplacementMicromapDirectionFormat = 0 ;
+pub const OptixDisplacementMicromapDirectionFormat_OPTIX_DISPLACEMENT_MICROMAP_DIRECTION_FORMAT_FLOAT3 : OptixDisplacementMicromapDirectionFormat = 8801 ;
+pub const OptixDisplacementMicromapDirectionFormat_OPTIX_DISPLACEMENT_MICROMAP_DIRECTION_FORMAT_HALF3 : OptixDisplacementMicromapDirectionFormat = 8802 ;
+pub type OptixDisplacementMicromapDirectionFormat = ::std::os::raw::c_uint;
+pub const OptixOpacityMicromapFormat_OPTIX_OPACITY_MICROMAP_FORMAT_NONE:
+    OptixOpacityMicromapFormat = 0;
+pub const OptixOpacityMicromapFormat_OPTIX_OPACITY_MICROMAP_FORMAT_2_STATE:
+    OptixOpacityMicromapFormat = 1;
+pub const OptixOpacityMicromapFormat_OPTIX_OPACITY_MICROMAP_FORMAT_4_STATE:
+    OptixOpacityMicromapFormat = 2;
+pub type OptixOpacityMicromapFormat = ::std::os::raw::c_uint;
+pub const OptixOpacityMicromapArrayIndexingMode_OPTIX_OPACITY_MICROMAP_ARRAY_INDEXING_MODE_NONE:
+    OptixOpacityMicromapArrayIndexingMode = 0;
+pub const OptixOpacityMicromapArrayIndexingMode_OPTIX_OPACITY_MICROMAP_ARRAY_INDEXING_MODE_LINEAR : OptixOpacityMicromapArrayIndexingMode = 1 ;
+pub const OptixOpacityMicromapArrayIndexingMode_OPTIX_OPACITY_MICROMAP_ARRAY_INDEXING_MODE_INDEXED : OptixOpacityMicromapArrayIndexingMode = 2 ;
+pub type OptixOpacityMicromapArrayIndexingMode = ::std::os::raw::c_uint;
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct OptixOpacityMicromapUsageCount {
+    pub count: ::std::os::raw::c_uint,
+    pub subdivisionLevel: ::std::os::raw::c_uint,
+    pub format: OptixOpacityMicromapFormat,
+}
+impl Default for OptixOpacityMicromapUsageCount {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+pub struct OptixBuildInputOpacityMicromap {
+    pub indexingMode: OptixOpacityMicromapArrayIndexingMode,
+    pub opacityMicromapArray: CUdeviceptr,
+    pub indexBuffer: CUdeviceptr,
+    pub indexSizeInBytes: ::std::os::raw::c_uint,
+    pub indexStrideInBytes: ::std::os::raw::c_uint,
+    pub indexOffset: ::std::os::raw::c_uint,
+    pub numMicromapUsageCounts: ::std::os::raw::c_uint,
+    pub micromapUsageCounts: *const OptixOpacityMicromapUsageCount,
+}
+impl Default for OptixBuildInputOpacityMicromap {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+pub struct OptixRelocateInputOpacityMicromap {
+    pub opacityMicromapArray: CUdeviceptr,
+}
+impl Default for OptixRelocateInputOpacityMicromap {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+pub const OptixDisplacementMicromapFormat_OPTIX_DISPLACEMENT_MICROMAP_FORMAT_NONE:
+    OptixDisplacementMicromapFormat = 0;
+pub const OptixDisplacementMicromapFormat_OPTIX_DISPLACEMENT_MICROMAP_FORMAT_64_MICRO_TRIS_64_BYTES : OptixDisplacementMicromapFormat = 1 ;
+pub const OptixDisplacementMicromapFormat_OPTIX_DISPLACEMENT_MICROMAP_FORMAT_256_MICRO_TRIS_128_BYTES : OptixDisplacementMicromapFormat = 2 ;
+pub const OptixDisplacementMicromapFormat_OPTIX_DISPLACEMENT_MICROMAP_FORMAT_1024_MICRO_TRIS_128_BYTES : OptixDisplacementMicromapFormat = 3 ;
+pub type OptixDisplacementMicromapFormat = ::std::os::raw::c_uint;
+pub const OptixDisplacementMicromapFlags_OPTIX_DISPLACEMENT_MICROMAP_FLAG_NONE:
+    OptixDisplacementMicromapFlags = 0;
+pub const OptixDisplacementMicromapFlags_OPTIX_DISPLACEMENT_MICROMAP_FLAG_PREFER_FAST_TRACE:
+    OptixDisplacementMicromapFlags = 1;
+pub const OptixDisplacementMicromapFlags_OPTIX_DISPLACEMENT_MICROMAP_FLAG_PREFER_FAST_BUILD:
+    OptixDisplacementMicromapFlags = 2;
+pub type OptixDisplacementMicromapFlags = ::std::os::raw::c_uint;
+pub const OptixDisplacementMicromapTriangleFlags_OPTIX_DISPLACEMENT_MICROMAP_TRIANGLE_FLAG_NONE:
+    OptixDisplacementMicromapTriangleFlags = 0;
+pub const OptixDisplacementMicromapTriangleFlags_OPTIX_DISPLACEMENT_MICROMAP_TRIANGLE_FLAG_DECIMATE_EDGE_01 : OptixDisplacementMicromapTriangleFlags = 1 ;
+pub const OptixDisplacementMicromapTriangleFlags_OPTIX_DISPLACEMENT_MICROMAP_TRIANGLE_FLAG_DECIMATE_EDGE_12 : OptixDisplacementMicromapTriangleFlags = 2 ;
+pub const OptixDisplacementMicromapTriangleFlags_OPTIX_DISPLACEMENT_MICROMAP_TRIANGLE_FLAG_DECIMATE_EDGE_20 : OptixDisplacementMicromapTriangleFlags = 4 ;
+pub type OptixDisplacementMicromapTriangleFlags = ::std::os::raw::c_uint;
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
+pub struct OptixDisplacementMicromapDesc {
+    pub byteOffset: ::std::os::raw::c_uint,
+    pub subdivisionLevel: ::std::os::raw::c_ushort,
+    pub format: ::std::os::raw::c_ushort,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct OptixDisplacementMicromapHistogramEntry {
+    pub count: ::std::os::raw::c_uint,
+    pub subdivisionLevel: ::std::os::raw::c_uint,
+    pub format: OptixDisplacementMicromapFormat,
+}
+impl Default for OptixDisplacementMicromapHistogramEntry {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+pub struct OptixDisplacementMicromapArrayBuildInput {
+    pub flags: OptixDisplacementMicromapFlags,
+    pub displacementValuesBuffer: CUdeviceptr,
+    pub perDisplacementMicromapDescBuffer: CUdeviceptr,
+    pub perDisplacementMicromapDescStrideInBytes: ::std::os::raw::c_uint,
+    pub numDisplacementMicromapHistogramEntries: ::std::os::raw::c_uint,
+    pub displacementMicromapHistogramEntries: *const OptixDisplacementMicromapHistogramEntry,
+}
+impl Default for OptixDisplacementMicromapArrayBuildInput {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct OptixDisplacementMicromapUsageCount {
+    pub count: ::std::os::raw::c_uint,
+    pub subdivisionLevel: ::std::os::raw::c_uint,
+    pub format: OptixDisplacementMicromapFormat,
+}
+impl Default for OptixDisplacementMicromapUsageCount {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+pub const OptixDisplacementMicromapArrayIndexingMode_OPTIX_DISPLACEMENT_MICROMAP_ARRAY_INDEXING_MODE_NONE : OptixDisplacementMicromapArrayIndexingMode = 0 ;
+pub const OptixDisplacementMicromapArrayIndexingMode_OPTIX_DISPLACEMENT_MICROMAP_ARRAY_INDEXING_MODE_LINEAR : OptixDisplacementMicromapArrayIndexingMode = 1 ;
+pub const OptixDisplacementMicromapArrayIndexingMode_OPTIX_DISPLACEMENT_MICROMAP_ARRAY_INDEXING_MODE_INDEXED : OptixDisplacementMicromapArrayIndexingMode = 2 ;
+pub type OptixDisplacementMicromapArrayIndexingMode = ::std::os::raw::c_uint;
+#[repr(C)]
+pub struct OptixBuildInputDisplacementMicromap {
+    pub indexingMode: OptixDisplacementMicromapArrayIndexingMode,
+    pub displacementMicromapArray: CUdeviceptr,
+    pub displacementMicromapIndexBuffer: CUdeviceptr,
+    pub vertexDirectionsBuffer: CUdeviceptr,
+    pub vertexBiasAndScaleBuffer: CUdeviceptr,
+    pub triangleFlagsBuffer: CUdeviceptr,
+    pub displacementMicromapIndexOffset: ::std::os::raw::c_uint,
+    pub displacementMicromapIndexStrideInBytes: ::std::os::raw::c_uint,
+    pub displacementMicromapIndexSizeInBytes: ::std::os::raw::c_uint,
+    pub vertexDirectionFormat: OptixDisplacementMicromapDirectionFormat,
+    pub vertexDirectionStrideInBytes: ::std::os::raw::c_uint,
+    pub vertexBiasAndScaleFormat: OptixDisplacementMicromapBiasAndScaleFormat,
+    pub vertexBiasAndScaleStrideInBytes: ::std::os::raw::c_uint,
+    pub triangleFlagsStrideInBytes: ::std::os::raw::c_uint,
+    pub numDisplacementMicromapUsageCounts: ::std::os::raw::c_uint,
+    pub displacementMicromapUsageCounts: *const OptixDisplacementMicromapUsageCount,
+}
+impl Default for OptixBuildInputDisplacementMicromap {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[repr(C)]
 pub struct OptixBuildInputTriangleArray {
     pub vertexBuffers: *const CUdeviceptr,
@@ -267,8 +462,24 @@ pub struct OptixBuildInputTriangleArray {
     pub sbtIndexOffsetStrideInBytes: ::std::os::raw::c_uint,
     pub primitiveIndexOffset: ::std::os::raw::c_uint,
     pub transformFormat: OptixTransformFormat,
+    pub opacityMicromap: OptixBuildInputOpacityMicromap,
+    pub displacementMicromap: OptixBuildInputDisplacementMicromap,
 }
 impl Default for OptixBuildInputTriangleArray {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+pub struct OptixRelocateInputTriangleArray {
+    pub numSbtRecords: ::std::os::raw::c_uint,
+    pub opacityMicromap: OptixRelocateInputOpacityMicromap,
+}
+impl Default for OptixRelocateInputTriangleArray {
     fn default() -> Self {
         let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
         unsafe {
@@ -282,8 +493,14 @@ pub const OptixPrimitiveType_OPTIX_PRIMITIVE_TYPE_ROUND_QUADRATIC_BSPLINE: Optix
     9473;
 pub const OptixPrimitiveType_OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BSPLINE: OptixPrimitiveType = 9474;
 pub const OptixPrimitiveType_OPTIX_PRIMITIVE_TYPE_ROUND_LINEAR: OptixPrimitiveType = 9475;
+pub const OptixPrimitiveType_OPTIX_PRIMITIVE_TYPE_ROUND_CATMULLROM: OptixPrimitiveType = 9476;
+pub const OptixPrimitiveType_OPTIX_PRIMITIVE_TYPE_FLAT_QUADRATIC_BSPLINE: OptixPrimitiveType = 9477;
+pub const OptixPrimitiveType_OPTIX_PRIMITIVE_TYPE_SPHERE: OptixPrimitiveType = 9478;
+pub const OptixPrimitiveType_OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BEZIER: OptixPrimitiveType = 9479;
 pub const OptixPrimitiveType_OPTIX_PRIMITIVE_TYPE_TRIANGLE: OptixPrimitiveType = 9521;
-pub type OptixPrimitiveType = ::std::os::raw::c_int;
+pub const OptixPrimitiveType_OPTIX_PRIMITIVE_TYPE_DISPLACED_MICROMESH_TRIANGLE: OptixPrimitiveType =
+    9522;
+pub type OptixPrimitiveType = ::std::os::raw::c_uint;
 pub const OptixPrimitiveTypeFlags_OPTIX_PRIMITIVE_TYPE_FLAGS_CUSTOM: OptixPrimitiveTypeFlags = 1;
 pub const OptixPrimitiveTypeFlags_OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_QUADRATIC_BSPLINE:
     OptixPrimitiveTypeFlags = 2;
@@ -291,9 +508,21 @@ pub const OptixPrimitiveTypeFlags_OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_CUBIC_BSPLINE
     OptixPrimitiveTypeFlags = 4;
 pub const OptixPrimitiveTypeFlags_OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_LINEAR: OptixPrimitiveTypeFlags =
     8;
+pub const OptixPrimitiveTypeFlags_OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_CATMULLROM:
+    OptixPrimitiveTypeFlags = 16;
+pub const OptixPrimitiveTypeFlags_OPTIX_PRIMITIVE_TYPE_FLAGS_FLAT_QUADRATIC_BSPLINE:
+    OptixPrimitiveTypeFlags = 32;
+pub const OptixPrimitiveTypeFlags_OPTIX_PRIMITIVE_TYPE_FLAGS_SPHERE: OptixPrimitiveTypeFlags = 64;
+pub const OptixPrimitiveTypeFlags_OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_CUBIC_BEZIER:
+    OptixPrimitiveTypeFlags = 128;
 pub const OptixPrimitiveTypeFlags_OPTIX_PRIMITIVE_TYPE_FLAGS_TRIANGLE: OptixPrimitiveTypeFlags =
     -2147483648;
+pub const OptixPrimitiveTypeFlags_OPTIX_PRIMITIVE_TYPE_FLAGS_DISPLACED_MICROMESH_TRIANGLE:
+    OptixPrimitiveTypeFlags = 1073741824;
 pub type OptixPrimitiveTypeFlags = ::std::os::raw::c_int;
+pub const OptixCurveEndcapFlags_OPTIX_CURVE_ENDCAP_DEFAULT: OptixCurveEndcapFlags = 0;
+pub const OptixCurveEndcapFlags_OPTIX_CURVE_ENDCAP_ON: OptixCurveEndcapFlags = 1;
+pub type OptixCurveEndcapFlags = ::std::os::raw::c_uint;
 #[repr(C)]
 pub struct OptixBuildInputCurveArray {
     pub curveType: OptixPrimitiveType,
@@ -309,8 +538,33 @@ pub struct OptixBuildInputCurveArray {
     pub indexStrideInBytes: ::std::os::raw::c_uint,
     pub flag: ::std::os::raw::c_uint,
     pub primitiveIndexOffset: ::std::os::raw::c_uint,
+    pub endcapFlags: ::std::os::raw::c_uint,
 }
 impl Default for OptixBuildInputCurveArray {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+pub struct OptixBuildInputSphereArray {
+    pub vertexBuffers: *const CUdeviceptr,
+    pub vertexStrideInBytes: ::std::os::raw::c_uint,
+    pub numVertices: ::std::os::raw::c_uint,
+    pub radiusBuffers: *const CUdeviceptr,
+    pub radiusStrideInBytes: ::std::os::raw::c_uint,
+    pub singleRadius: ::std::os::raw::c_int,
+    pub flags: *const ::std::os::raw::c_uint,
+    pub numSbtRecords: ::std::os::raw::c_uint,
+    pub sbtIndexOffsetBuffer: CUdeviceptr,
+    pub sbtIndexOffsetSizeInBytes: ::std::os::raw::c_uint,
+    pub sbtIndexOffsetStrideInBytes: ::std::os::raw::c_uint,
+    pub primitiveIndexOffset: ::std::os::raw::c_uint,
+}
+impl Default for OptixBuildInputSphereArray {
     fn default() -> Self {
         let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
         unsafe {
@@ -354,8 +608,23 @@ impl Default for OptixBuildInputCustomPrimitiveArray {
 pub struct OptixBuildInputInstanceArray {
     pub instances: CUdeviceptr,
     pub numInstances: ::std::os::raw::c_uint,
+    pub instanceStride: ::std::os::raw::c_uint,
 }
 impl Default for OptixBuildInputInstanceArray {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+pub struct OptixRelocateInputInstanceArray {
+    pub numInstances: ::std::os::raw::c_uint,
+    pub traversableHandles: CUdeviceptr,
+}
+impl Default for OptixRelocateInputInstanceArray {
     fn default() -> Self {
         let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
         unsafe {
@@ -369,11 +638,13 @@ pub const OptixBuildInputType_OPTIX_BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES: OptixBui
 pub const OptixBuildInputType_OPTIX_BUILD_INPUT_TYPE_INSTANCES: OptixBuildInputType = 8515;
 pub const OptixBuildInputType_OPTIX_BUILD_INPUT_TYPE_INSTANCE_POINTERS: OptixBuildInputType = 8516;
 pub const OptixBuildInputType_OPTIX_BUILD_INPUT_TYPE_CURVES: OptixBuildInputType = 8517;
-pub type OptixBuildInputType = ::std::os::raw::c_int;
+pub const OptixBuildInputType_OPTIX_BUILD_INPUT_TYPE_SPHERES: OptixBuildInputType = 8518;
+pub type OptixBuildInputType = ::std::os::raw::c_uint;
 #[repr(C)]
 pub struct OptixBuildInput__bindgen_ty_1 {
     pub triangleArray: __BindgenUnionField<OptixBuildInputTriangleArray>,
     pub curveArray: __BindgenUnionField<OptixBuildInputCurveArray>,
+    pub sphereArray: __BindgenUnionField<OptixBuildInputSphereArray>,
     pub customPrimitiveArray: __BindgenUnionField<OptixBuildInputCustomPrimitiveArray>,
     pub instanceArray: __BindgenUnionField<OptixBuildInputInstanceArray>,
     pub pad: __BindgenUnionField<[::std::os::raw::c_char; 1024usize]>,
@@ -388,14 +659,45 @@ impl Default for OptixBuildInput__bindgen_ty_1 {
         }
     }
 }
+#[repr(C)]
+pub struct OptixRelocateInput {
+    pub type_: OptixBuildInputType,
+    pub __bindgen_anon_1: OptixRelocateInput__bindgen_ty_1,
+}
+#[repr(C)]
+pub struct OptixRelocateInput__bindgen_ty_1 {
+    pub instanceArray: __BindgenUnionField<OptixRelocateInputInstanceArray>,
+    pub triangleArray: __BindgenUnionField<OptixRelocateInputTriangleArray>,
+    pub bindgen_union_field: [u64; 2usize],
+}
+impl Default for OptixRelocateInput__bindgen_ty_1 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+impl Default for OptixRelocateInput {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 pub const OptixInstanceFlags_OPTIX_INSTANCE_FLAG_NONE: OptixInstanceFlags = 0;
 pub const OptixInstanceFlags_OPTIX_INSTANCE_FLAG_DISABLE_TRIANGLE_FACE_CULLING: OptixInstanceFlags =
     1;
 pub const OptixInstanceFlags_OPTIX_INSTANCE_FLAG_FLIP_TRIANGLE_FACING: OptixInstanceFlags = 2;
 pub const OptixInstanceFlags_OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT: OptixInstanceFlags = 4;
 pub const OptixInstanceFlags_OPTIX_INSTANCE_FLAG_ENFORCE_ANYHIT: OptixInstanceFlags = 8;
-pub const OptixInstanceFlags_OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM: OptixInstanceFlags = 64;
-pub type OptixInstanceFlags = ::std::os::raw::c_int;
+pub const OptixInstanceFlags_OPTIX_INSTANCE_FLAG_FORCE_OPACITY_MICROMAP_2_STATE:
+    OptixInstanceFlags = 16;
+pub const OptixInstanceFlags_OPTIX_INSTANCE_FLAG_DISABLE_OPACITY_MICROMAPS: OptixInstanceFlags = 32;
+pub type OptixInstanceFlags = ::std::os::raw::c_uint;
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 pub struct OptixInstance {
@@ -414,14 +716,93 @@ pub const OptixBuildFlags_OPTIX_BUILD_FLAG_PREFER_FAST_TRACE: OptixBuildFlags = 
 pub const OptixBuildFlags_OPTIX_BUILD_FLAG_PREFER_FAST_BUILD: OptixBuildFlags = 8;
 pub const OptixBuildFlags_OPTIX_BUILD_FLAG_ALLOW_RANDOM_VERTEX_ACCESS: OptixBuildFlags = 16;
 pub const OptixBuildFlags_OPTIX_BUILD_FLAG_ALLOW_RANDOM_INSTANCE_ACCESS: OptixBuildFlags = 32;
-pub type OptixBuildFlags = ::std::os::raw::c_int;
+pub const OptixBuildFlags_OPTIX_BUILD_FLAG_ALLOW_OPACITY_MICROMAP_UPDATE: OptixBuildFlags = 64;
+pub const OptixBuildFlags_OPTIX_BUILD_FLAG_ALLOW_DISABLE_OPACITY_MICROMAPS: OptixBuildFlags = 128;
+pub type OptixBuildFlags = ::std::os::raw::c_uint;
+pub const OptixOpacityMicromapFlags_OPTIX_OPACITY_MICROMAP_FLAG_NONE: OptixOpacityMicromapFlags = 0;
+pub const OptixOpacityMicromapFlags_OPTIX_OPACITY_MICROMAP_FLAG_PREFER_FAST_TRACE:
+    OptixOpacityMicromapFlags = 1;
+pub const OptixOpacityMicromapFlags_OPTIX_OPACITY_MICROMAP_FLAG_PREFER_FAST_BUILD:
+    OptixOpacityMicromapFlags = 2;
+pub type OptixOpacityMicromapFlags = ::std::os::raw::c_uint;
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
+pub struct OptixOpacityMicromapDesc {
+    pub byteOffset: ::std::os::raw::c_uint,
+    pub subdivisionLevel: ::std::os::raw::c_ushort,
+    pub format: ::std::os::raw::c_ushort,
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct OptixOpacityMicromapHistogramEntry {
+    pub count: ::std::os::raw::c_uint,
+    pub subdivisionLevel: ::std::os::raw::c_uint,
+    pub format: OptixOpacityMicromapFormat,
+}
+impl Default for OptixOpacityMicromapHistogramEntry {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+pub struct OptixOpacityMicromapArrayBuildInput {
+    pub flags: ::std::os::raw::c_uint,
+    pub inputBuffer: CUdeviceptr,
+    pub perMicromapDescBuffer: CUdeviceptr,
+    pub perMicromapDescStrideInBytes: ::std::os::raw::c_uint,
+    pub numMicromapHistogramEntries: ::std::os::raw::c_uint,
+    pub micromapHistogramEntries: *const OptixOpacityMicromapHistogramEntry,
+}
+impl Default for OptixOpacityMicromapArrayBuildInput {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+pub struct OptixMicromapBufferSizes {
+    pub outputSizeInBytes: size_t,
+    pub tempSizeInBytes: size_t,
+}
+impl Default for OptixMicromapBufferSizes {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
+#[repr(C)]
+pub struct OptixMicromapBuffers {
+    pub output: CUdeviceptr,
+    pub outputSizeInBytes: size_t,
+    pub temp: CUdeviceptr,
+    pub tempSizeInBytes: size_t,
+}
+impl Default for OptixMicromapBuffers {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 pub const OptixBuildOperation_OPTIX_BUILD_OPERATION_BUILD: OptixBuildOperation = 8545;
 pub const OptixBuildOperation_OPTIX_BUILD_OPERATION_UPDATE: OptixBuildOperation = 8546;
-pub type OptixBuildOperation = ::std::os::raw::c_int;
+pub type OptixBuildOperation = ::std::os::raw::c_uint;
 pub const OptixMotionFlags_OPTIX_MOTION_FLAG_NONE: OptixMotionFlags = 0;
 pub const OptixMotionFlags_OPTIX_MOTION_FLAG_START_VANISH: OptixMotionFlags = 1;
 pub const OptixMotionFlags_OPTIX_MOTION_FLAG_END_VANISH: OptixMotionFlags = 2;
-pub type OptixMotionFlags = ::std::os::raw::c_int;
+pub type OptixMotionFlags = ::std::os::raw::c_uint;
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 pub struct OptixMotionOptions {
@@ -463,7 +844,7 @@ impl Default for OptixAccelBufferSizes {
 }
 pub const OptixAccelPropertyType_OPTIX_PROPERTY_TYPE_COMPACTED_SIZE: OptixAccelPropertyType = 8577;
 pub const OptixAccelPropertyType_OPTIX_PROPERTY_TYPE_AABBS: OptixAccelPropertyType = 8578;
-pub type OptixAccelPropertyType = ::std::os::raw::c_int;
+pub type OptixAccelPropertyType = ::std::os::raw::c_uint;
 #[repr(C)]
 pub struct OptixAccelEmitDesc {
     pub result: CUdeviceptr,
@@ -480,7 +861,7 @@ impl Default for OptixAccelEmitDesc {
 }
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
-pub struct OptixAccelRelocationInfo {
+pub struct OptixRelocationInfo {
     pub info: [::std::os::raw::c_ulonglong; 4usize],
 }
 #[repr(C)]
@@ -532,17 +913,20 @@ pub const OptixTraversableType_OPTIX_TRAVERSABLE_TYPE_MATRIX_MOTION_TRANSFORM:
     OptixTraversableType = 8642;
 pub const OptixTraversableType_OPTIX_TRAVERSABLE_TYPE_SRT_MOTION_TRANSFORM: OptixTraversableType =
     8643;
-pub type OptixTraversableType = ::std::os::raw::c_int;
+pub type OptixTraversableType = ::std::os::raw::c_uint;
 pub mod OptixPixelFormat {
-    pub type Type = ::std::os::raw::c_int;
+    pub type Type = ::std::os::raw::c_uint;
+    pub const OPTIX_PIXEL_FORMAT_HALF1: Type = 8714;
     pub const OPTIX_PIXEL_FORMAT_HALF2: Type = 8711;
     pub const OPTIX_PIXEL_FORMAT_HALF3: Type = 8705;
     pub const OPTIX_PIXEL_FORMAT_HALF4: Type = 8706;
+    pub const OPTIX_PIXEL_FORMAT_FLOAT1: Type = 8715;
     pub const OPTIX_PIXEL_FORMAT_FLOAT2: Type = 8712;
     pub const OPTIX_PIXEL_FORMAT_FLOAT3: Type = 8707;
     pub const OPTIX_PIXEL_FORMAT_FLOAT4: Type = 8708;
     pub const OPTIX_PIXEL_FORMAT_UCHAR3: Type = 8709;
     pub const OPTIX_PIXEL_FORMAT_UCHAR4: Type = 8710;
+    pub const OPTIX_PIXEL_FORMAT_INTERNAL_GUIDE_LAYER: Type = 8713;
 }
 #[repr(C)]
 pub struct OptixImage2D {
@@ -563,11 +947,14 @@ impl Default for OptixImage2D {
     }
 }
 pub mod OptixDenoiserModelKind {
-    pub type Type = ::std::os::raw::c_int;
+    pub type Type = ::std::os::raw::c_uint;
     pub const OPTIX_DENOISER_MODEL_KIND_LDR: Type = 8994;
     pub const OPTIX_DENOISER_MODEL_KIND_HDR: Type = 8995;
     pub const OPTIX_DENOISER_MODEL_KIND_AOV: Type = 8996;
     pub const OPTIX_DENOISER_MODEL_KIND_TEMPORAL: Type = 8997;
+    pub const OPTIX_DENOISER_MODEL_KIND_TEMPORAL_AOV: Type = 8998;
+    pub const OPTIX_DENOISER_MODEL_KIND_UPSCALE2X: Type = 8999;
+    pub const OPTIX_DENOISER_MODEL_KIND_TEMPORAL_UPSCALE2X: Type = 9000;
 }
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
@@ -580,6 +967,9 @@ pub struct OptixDenoiserGuideLayer {
     pub albedo: OptixImage2D,
     pub normal: OptixImage2D,
     pub flow: OptixImage2D,
+    pub previousOutputInternalGuideLayer: OptixImage2D,
+    pub outputInternalGuideLayer: OptixImage2D,
+    pub flowTrustworthiness: OptixImage2D,
 }
 impl Default for OptixDenoiserGuideLayer {
     fn default() -> Self {
@@ -590,11 +980,19 @@ impl Default for OptixDenoiserGuideLayer {
         }
     }
 }
+pub const OptixDenoiserAOVType_OPTIX_DENOISER_AOV_TYPE_NONE: OptixDenoiserAOVType = 0;
+pub const OptixDenoiserAOVType_OPTIX_DENOISER_AOV_TYPE_BEAUTY: OptixDenoiserAOVType = 28672;
+pub const OptixDenoiserAOVType_OPTIX_DENOISER_AOV_TYPE_SPECULAR: OptixDenoiserAOVType = 28673;
+pub const OptixDenoiserAOVType_OPTIX_DENOISER_AOV_TYPE_REFLECTION: OptixDenoiserAOVType = 28674;
+pub const OptixDenoiserAOVType_OPTIX_DENOISER_AOV_TYPE_REFRACTION: OptixDenoiserAOVType = 28675;
+pub const OptixDenoiserAOVType_OPTIX_DENOISER_AOV_TYPE_DIFFUSE: OptixDenoiserAOVType = 28676;
+pub type OptixDenoiserAOVType = ::std::os::raw::c_uint;
 #[repr(C)]
 pub struct OptixDenoiserLayer {
     pub input: OptixImage2D,
     pub previousOutput: OptixImage2D,
     pub output: OptixImage2D,
+    pub type_: OptixDenoiserAOVType,
 }
 impl Default for OptixDenoiserLayer {
     fn default() -> Self {
@@ -605,12 +1003,18 @@ impl Default for OptixDenoiserLayer {
         }
     }
 }
+pub const OptixDenoiserAlphaMode_OPTIX_DENOISER_ALPHA_MODE_COPY: OptixDenoiserAlphaMode = 0;
+pub const OptixDenoiserAlphaMode_OPTIX_DENOISER_ALPHA_MODE_ALPHA_AS_AOV: OptixDenoiserAlphaMode = 1;
+pub const OptixDenoiserAlphaMode_OPTIX_DENOISER_ALPHA_MODE_FULL_DENOISE_PASS:
+    OptixDenoiserAlphaMode = 2;
+pub type OptixDenoiserAlphaMode = ::std::os::raw::c_uint;
 #[repr(C)]
 pub struct OptixDenoiserParams {
-    pub denoiseAlpha: ::std::os::raw::c_uint,
+    pub denoiseAlpha: OptixDenoiserAlphaMode,
     pub hdrIntensity: CUdeviceptr,
     pub blendFactor: f32,
     pub hdrAverageColor: CUdeviceptr,
+    pub temporalModeUsePreviousLayers: ::std::os::raw::c_uint,
 }
 impl Default for OptixDenoiserParams {
     fn default() -> Self {
@@ -627,6 +1031,9 @@ pub struct OptixDenoiserSizes {
     pub withOverlapScratchSizeInBytes: size_t,
     pub withoutOverlapScratchSizeInBytes: size_t,
     pub overlapWindowSizeInPixels: ::std::os::raw::c_uint,
+    pub computeAverageColorSizeInBytes: size_t,
+    pub computeIntensitySizeInBytes: size_t,
+    pub internalGuideLayerPixelSizeInBytes: size_t,
 }
 impl Default for OptixDenoiserSizes {
     fn default() -> Self {
@@ -646,21 +1053,22 @@ pub const OptixRayFlags_OPTIX_RAY_FLAG_CULL_BACK_FACING_TRIANGLES: OptixRayFlags
 pub const OptixRayFlags_OPTIX_RAY_FLAG_CULL_FRONT_FACING_TRIANGLES: OptixRayFlags = 32;
 pub const OptixRayFlags_OPTIX_RAY_FLAG_CULL_DISABLED_ANYHIT: OptixRayFlags = 64;
 pub const OptixRayFlags_OPTIX_RAY_FLAG_CULL_ENFORCED_ANYHIT: OptixRayFlags = 128;
-pub type OptixRayFlags = ::std::os::raw::c_int;
+pub const OptixRayFlags_OPTIX_RAY_FLAG_FORCE_OPACITY_MICROMAP_2_STATE: OptixRayFlags = 1024;
+pub type OptixRayFlags = ::std::os::raw::c_uint;
 pub const OptixTransformType_OPTIX_TRANSFORM_TYPE_NONE: OptixTransformType = 0;
 pub const OptixTransformType_OPTIX_TRANSFORM_TYPE_STATIC_TRANSFORM: OptixTransformType = 1;
 pub const OptixTransformType_OPTIX_TRANSFORM_TYPE_MATRIX_MOTION_TRANSFORM: OptixTransformType = 2;
 pub const OptixTransformType_OPTIX_TRANSFORM_TYPE_SRT_MOTION_TRANSFORM: OptixTransformType = 3;
 pub const OptixTransformType_OPTIX_TRANSFORM_TYPE_INSTANCE: OptixTransformType = 4;
-pub type OptixTransformType = ::std::os::raw::c_int;
+pub type OptixTransformType = ::std::os::raw::c_uint;
 pub mod OptixTraversableGraphFlags {
-    pub type Type = ::std::os::raw::c_int;
+    pub type Type = ::std::os::raw::c_uint;
     pub const OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_ANY: Type = 0;
     pub const OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS: Type = 1;
     pub const OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_LEVEL_INSTANCING: Type = 2;
 }
 pub mod OptixCompileOptimizationLevel {
-    pub type Type = ::std::os::raw::c_int;
+    pub type Type = ::std::os::raw::c_uint;
     pub const OPTIX_COMPILE_OPTIMIZATION_DEFAULT: Type = 0;
     pub const OPTIX_COMPILE_OPTIMIZATION_LEVEL_0: Type = 9024;
     pub const OPTIX_COMPILE_OPTIMIZATION_LEVEL_1: Type = 9025;
@@ -668,12 +1076,23 @@ pub mod OptixCompileOptimizationLevel {
     pub const OPTIX_COMPILE_OPTIMIZATION_LEVEL_3: Type = 9027;
 }
 pub mod OptixCompileDebugLevel {
-    pub type Type = ::std::os::raw::c_int;
+    pub type Type = ::std::os::raw::c_uint;
     pub const OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT: Type = 0;
     pub const OPTIX_COMPILE_DEBUG_LEVEL_NONE: Type = 9040;
-    pub const OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO: Type = 9041;
+    pub const OPTIX_COMPILE_DEBUG_LEVEL_MINIMAL: Type = 9041;
+    pub const OPTIX_COMPILE_DEBUG_LEVEL_MODERATE: Type = 9043;
     pub const OPTIX_COMPILE_DEBUG_LEVEL_FULL: Type = 9042;
 }
+pub const OptixModuleCompileState_OPTIX_MODULE_COMPILE_STATE_NOT_STARTED: OptixModuleCompileState =
+    9056;
+pub const OptixModuleCompileState_OPTIX_MODULE_COMPILE_STATE_STARTED: OptixModuleCompileState =
+    9057;
+pub const OptixModuleCompileState_OPTIX_MODULE_COMPILE_STATE_IMPENDING_FAILURE:
+    OptixModuleCompileState = 9058;
+pub const OptixModuleCompileState_OPTIX_MODULE_COMPILE_STATE_FAILED: OptixModuleCompileState = 9059;
+pub const OptixModuleCompileState_OPTIX_MODULE_COMPILE_STATE_COMPLETED: OptixModuleCompileState =
+    9060;
+pub type OptixModuleCompileState = ::std::os::raw::c_uint;
 #[repr(C)]
 pub struct OptixModuleCompileBoundValueEntry {
     pub pipelineParamOffsetInBytes: size_t,
@@ -690,6 +1109,56 @@ impl Default for OptixModuleCompileBoundValueEntry {
         }
     }
 }
+pub const OptixPayloadTypeID_OPTIX_PAYLOAD_TYPE_DEFAULT: OptixPayloadTypeID = 0;
+pub const OptixPayloadTypeID_OPTIX_PAYLOAD_TYPE_ID_0: OptixPayloadTypeID = 1;
+pub const OptixPayloadTypeID_OPTIX_PAYLOAD_TYPE_ID_1: OptixPayloadTypeID = 2;
+pub const OptixPayloadTypeID_OPTIX_PAYLOAD_TYPE_ID_2: OptixPayloadTypeID = 4;
+pub const OptixPayloadTypeID_OPTIX_PAYLOAD_TYPE_ID_3: OptixPayloadTypeID = 8;
+pub const OptixPayloadTypeID_OPTIX_PAYLOAD_TYPE_ID_4: OptixPayloadTypeID = 16;
+pub const OptixPayloadTypeID_OPTIX_PAYLOAD_TYPE_ID_5: OptixPayloadTypeID = 32;
+pub const OptixPayloadTypeID_OPTIX_PAYLOAD_TYPE_ID_6: OptixPayloadTypeID = 64;
+pub const OptixPayloadTypeID_OPTIX_PAYLOAD_TYPE_ID_7: OptixPayloadTypeID = 128;
+pub type OptixPayloadTypeID = ::std::os::raw::c_uint;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_TRACE_CALLER_NONE: OptixPayloadSemantics =
+    0;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_TRACE_CALLER_READ: OptixPayloadSemantics =
+    1;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_TRACE_CALLER_WRITE: OptixPayloadSemantics =
+    2;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_TRACE_CALLER_READ_WRITE:
+    OptixPayloadSemantics = 3;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_CH_NONE: OptixPayloadSemantics = 0;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_CH_READ: OptixPayloadSemantics = 4;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_CH_WRITE: OptixPayloadSemantics = 8;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_CH_READ_WRITE: OptixPayloadSemantics = 12;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_MS_NONE: OptixPayloadSemantics = 0;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_MS_READ: OptixPayloadSemantics = 16;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_MS_WRITE: OptixPayloadSemantics = 32;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_MS_READ_WRITE: OptixPayloadSemantics = 48;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_AH_NONE: OptixPayloadSemantics = 0;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_AH_READ: OptixPayloadSemantics = 64;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_AH_WRITE: OptixPayloadSemantics = 128;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_AH_READ_WRITE: OptixPayloadSemantics = 192;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_IS_NONE: OptixPayloadSemantics = 0;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_IS_READ: OptixPayloadSemantics = 256;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_IS_WRITE: OptixPayloadSemantics = 512;
+pub const OptixPayloadSemantics_OPTIX_PAYLOAD_SEMANTICS_IS_READ_WRITE: OptixPayloadSemantics = 768;
+pub type OptixPayloadSemantics = ::std::os::raw::c_uint;
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct OptixPayloadType {
+    pub numPayloadValues: ::std::os::raw::c_uint,
+    pub payloadSemantics: *const ::std::os::raw::c_uint,
+}
+impl Default for OptixPayloadType {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct OptixModuleCompileOptions {
@@ -698,6 +1167,8 @@ pub struct OptixModuleCompileOptions {
     pub debugLevel: OptixCompileDebugLevel::Type,
     pub boundValues: *const OptixModuleCompileBoundValueEntry,
     pub numBoundValues: ::std::os::raw::c_uint,
+    pub numPayloadTypes: ::std::os::raw::c_uint,
+    pub payloadTypes: *mut OptixPayloadType,
 }
 impl Default for OptixModuleCompileOptions {
     fn default() -> Self {
@@ -709,7 +1180,7 @@ impl Default for OptixModuleCompileOptions {
     }
 }
 pub mod OptixProgramGroupKind {
-    pub type Type = ::std::os::raw::c_int;
+    pub type Type = ::std::os::raw::c_uint;
     pub const OPTIX_PROGRAM_GROUP_KIND_RAYGEN: Type = 9249;
     pub const OPTIX_PROGRAM_GROUP_KIND_MISS: Type = 9250;
     pub const OPTIX_PROGRAM_GROUP_KIND_EXCEPTION: Type = 9251;
@@ -717,7 +1188,7 @@ pub mod OptixProgramGroupKind {
     pub const OPTIX_PROGRAM_GROUP_KIND_CALLABLES: Type = 9253;
 }
 pub const OptixProgramGroupFlags_OPTIX_PROGRAM_GROUP_FLAGS_NONE: OptixProgramGroupFlags = 0;
-pub type OptixProgramGroupFlags = ::std::os::raw::c_int;
+pub type OptixProgramGroupFlags = ::std::os::raw::c_uint;
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct OptixProgramGroupSingleModule {
@@ -804,9 +1275,18 @@ impl Default for OptixProgramGroupDesc {
     }
 }
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct OptixProgramGroupOptions {
-    pub reserved: ::std::os::raw::c_int,
+    pub payloadType: *mut OptixPayloadType,
+}
+impl Default for OptixProgramGroupOptions {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
 }
 pub const OptixExceptionCodes_OPTIX_EXCEPTION_CODE_STACK_OVERFLOW: OptixExceptionCodes = -1;
 pub const OptixExceptionCodes_OPTIX_EXCEPTION_CODE_TRACE_DEPTH_EXCEEDED: OptixExceptionCodes = -2;
@@ -839,9 +1319,10 @@ pub const OptixExceptionCodes_OPTIX_EXCEPTION_CODE_INVALID_VALUE_ARGUMENT_2: Opt
     -18;
 pub const OptixExceptionCodes_OPTIX_EXCEPTION_CODE_UNSUPPORTED_DATA_ACCESS: OptixExceptionCodes =
     -32;
+pub const OptixExceptionCodes_OPTIX_EXCEPTION_CODE_PAYLOAD_TYPE_MISMATCH: OptixExceptionCodes = -33;
 pub type OptixExceptionCodes = ::std::os::raw::c_int;
 pub mod OptixExceptionFlags {
-    pub type Type = ::std::os::raw::c_int;
+    pub type Type = ::std::os::raw::c_uint;
     pub const OPTIX_EXCEPTION_FLAG_NONE: Type = 0;
     pub const OPTIX_EXCEPTION_FLAG_STACK_OVERFLOW: Type = 1;
     pub const OPTIX_EXCEPTION_FLAG_TRACE_DEPTH: Type = 2;
@@ -849,6 +1330,7 @@ pub mod OptixExceptionFlags {
     pub const OPTIX_EXCEPTION_FLAG_DEBUG: Type = 8;
 }
 #[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct OptixPipelineCompileOptions {
     pub usesMotionBlur: ::std::os::raw::c_int,
     pub traversableGraphFlags: ::std::os::raw::c_uint,
@@ -857,8 +1339,7 @@ pub struct OptixPipelineCompileOptions {
     pub exceptionFlags: ::std::os::raw::c_uint,
     pub pipelineLaunchParamsVariableName: *const ::std::os::raw::c_char,
     pub usesPrimitiveTypeFlags: ::std::os::raw::c_uint,
-    pub reserved: ::std::os::raw::c_uint,
-    pub reserved2: size_t,
+    pub allowOpacityMicromaps: ::std::os::raw::c_int,
 }
 impl Default for OptixPipelineCompileOptions {
     fn default() -> Self {
@@ -870,19 +1351,9 @@ impl Default for OptixPipelineCompileOptions {
     }
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
 pub struct OptixPipelineLinkOptions {
     pub maxTraceDepth: ::std::os::raw::c_uint,
-    pub debugLevel: OptixCompileDebugLevel::Type,
-}
-impl Default for OptixPipelineLinkOptions {
-    fn default() -> Self {
-        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
-        unsafe {
-            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
-            s.assume_init()
-        }
-    }
 }
 #[repr(C)]
 pub struct OptixShaderBindingTable {
@@ -920,7 +1391,7 @@ pub struct OptixStackSizes {
 }
 pub const OptixQueryFunctionTableOptions_OPTIX_QUERY_FUNCTION_TABLE_OPTION_DUMMY:
     OptixQueryFunctionTableOptions = 0;
-pub type OptixQueryFunctionTableOptions = ::std::os::raw::c_int;
+pub type OptixQueryFunctionTableOptions = ::std::os::raw::c_uint;
 pub type OptixQueryFunctionTable_t = ::std::option::Option<
     unsafe extern "C" fn(
         abiId: ::std::os::raw::c_int,
@@ -936,6 +1407,8 @@ pub type OptixQueryFunctionTable_t = ::std::option::Option<
 pub struct OptixBuiltinISOptions {
     pub builtinISModuleType: OptixPrimitiveType,
     pub usesMotionBlur: ::std::os::raw::c_int,
+    pub buildFlags: ::std::os::raw::c_uint,
+    pub curveEndcapFlags: ::std::os::raw::c_uint,
 }
 impl Default for OptixBuiltinISOptions {
     fn default() -> Self {
@@ -1042,15 +1515,34 @@ extern "C" {
     ) -> OptixResult;
 }
 extern "C" {
-    pub fn optixModuleCreateFromPTX(
+    pub fn optixModuleCreate(
         context: OptixDeviceContext,
         moduleCompileOptions: *const OptixModuleCompileOptions,
         pipelineCompileOptions: *const OptixPipelineCompileOptions,
-        PTX: *const ::std::os::raw::c_char,
-        PTXsize: size_t,
+        input: *const ::std::os::raw::c_char,
+        inputSize: size_t,
         logString: *mut ::std::os::raw::c_char,
         logStringSize: *mut size_t,
         module: *mut OptixModule,
+    ) -> OptixResult;
+}
+extern "C" {
+    pub fn optixModuleCreateWithTasks(
+        context: OptixDeviceContext,
+        moduleCompileOptions: *const OptixModuleCompileOptions,
+        pipelineCompileOptions: *const OptixPipelineCompileOptions,
+        input: *const ::std::os::raw::c_char,
+        inputSize: size_t,
+        logString: *mut ::std::os::raw::c_char,
+        logStringSize: *mut size_t,
+        module: *mut OptixModule,
+        firstTask: *mut OptixTask,
+    ) -> OptixResult;
+}
+extern "C" {
+    pub fn optixModuleGetCompilationState(
+        module: OptixModule,
+        state: *mut OptixModuleCompileState,
     ) -> OptixResult;
 }
 extern "C" {
@@ -1066,9 +1558,18 @@ extern "C" {
     ) -> OptixResult;
 }
 extern "C" {
+    pub fn optixTaskExecute(
+        task: OptixTask,
+        additionalTasks: *mut OptixTask,
+        maxNumAdditionalTasks: ::std::os::raw::c_uint,
+        numAdditionalTasksCreated: *mut ::std::os::raw::c_uint,
+    ) -> OptixResult;
+}
+extern "C" {
     pub fn optixProgramGroupGetStackSize(
         programGroup: OptixProgramGroup,
         stackSizes: *mut OptixStackSizes,
+        pipeline: OptixPipeline,
     ) -> OptixResult;
 }
 extern "C" {
@@ -1132,13 +1633,13 @@ extern "C" {
     pub fn optixAccelGetRelocationInfo(
         context: OptixDeviceContext,
         handle: OptixTraversableHandle,
-        info: *mut OptixAccelRelocationInfo,
+        info: *mut OptixRelocationInfo,
     ) -> OptixResult;
 }
 extern "C" {
-    pub fn optixAccelCheckRelocationCompatibility(
+    pub fn optixCheckRelocationCompatibility(
         context: OptixDeviceContext,
-        info: *const OptixAccelRelocationInfo,
+        info: *const OptixRelocationInfo,
         compatible: *mut ::std::os::raw::c_int,
     ) -> OptixResult;
 }
@@ -1146,9 +1647,9 @@ extern "C" {
     pub fn optixAccelRelocate(
         context: OptixDeviceContext,
         stream: CUstream,
-        info: *const OptixAccelRelocationInfo,
-        instanceTraversableHandles: CUdeviceptr,
-        numInstanceTraversableHandles: size_t,
+        info: *const OptixRelocationInfo,
+        relocateInputs: *const OptixRelocateInput,
+        numRelocateInputs: size_t,
         targetAccel: CUdeviceptr,
         targetAccelSizeInBytes: size_t,
         targetHandle: *mut OptixTraversableHandle,
@@ -1165,11 +1666,65 @@ extern "C" {
     ) -> OptixResult;
 }
 extern "C" {
+    pub fn optixAccelEmitProperty(
+        context: OptixDeviceContext,
+        stream: CUstream,
+        handle: OptixTraversableHandle,
+        emittedProperty: *const OptixAccelEmitDesc,
+    ) -> OptixResult;
+}
+extern "C" {
     pub fn optixConvertPointerToTraversableHandle(
         onDevice: OptixDeviceContext,
         pointer: CUdeviceptr,
         traversableType: OptixTraversableType,
         traversableHandle: *mut OptixTraversableHandle,
+    ) -> OptixResult;
+}
+extern "C" {
+    pub fn optixOpacityMicromapArrayComputeMemoryUsage(
+        context: OptixDeviceContext,
+        buildInput: *const OptixOpacityMicromapArrayBuildInput,
+        bufferSizes: *mut OptixMicromapBufferSizes,
+    ) -> OptixResult;
+}
+extern "C" {
+    pub fn optixOpacityMicromapArrayBuild(
+        context: OptixDeviceContext,
+        stream: CUstream,
+        buildInput: *const OptixOpacityMicromapArrayBuildInput,
+        buffers: *const OptixMicromapBuffers,
+    ) -> OptixResult;
+}
+extern "C" {
+    pub fn optixOpacityMicromapArrayGetRelocationInfo(
+        context: OptixDeviceContext,
+        opacityMicromapArray: CUdeviceptr,
+        info: *mut OptixRelocationInfo,
+    ) -> OptixResult;
+}
+extern "C" {
+    pub fn optixOpacityMicromapArrayRelocate(
+        context: OptixDeviceContext,
+        stream: CUstream,
+        info: *const OptixRelocationInfo,
+        targetOpacityMicromapArray: CUdeviceptr,
+        targetOpacityMicromapArraySizeInBytes: size_t,
+    ) -> OptixResult;
+}
+extern "C" {
+    pub fn optixDisplacementMicromapArrayComputeMemoryUsage(
+        context: OptixDeviceContext,
+        buildInput: *const OptixDisplacementMicromapArrayBuildInput,
+        bufferSizes: *mut OptixMicromapBufferSizes,
+    ) -> OptixResult;
+}
+extern "C" {
+    pub fn optixDisplacementMicromapArrayBuild(
+        context: OptixDeviceContext,
+        stream: CUstream,
+        buildInput: *const OptixDisplacementMicromapArrayBuildInput,
+        buffers: *const OptixMicromapBuffers,
     ) -> OptixResult;
 }
 extern "C" {
@@ -1320,16 +1875,35 @@ pub struct OptixFunctionTable {
             highWaterMark: *mut size_t,
         ) -> OptixResult,
     >,
-    pub optixModuleCreateFromPTX: ::std::option::Option<
+    pub optixModuleCreate: ::std::option::Option<
         unsafe extern "C" fn(
             context: OptixDeviceContext,
             moduleCompileOptions: *const OptixModuleCompileOptions,
             pipelineCompileOptions: *const OptixPipelineCompileOptions,
-            PTX: *const ::std::os::raw::c_char,
-            PTXsize: size_t,
+            input: *const ::std::os::raw::c_char,
+            inputSize: size_t,
             logString: *mut ::std::os::raw::c_char,
             logStringSize: *mut size_t,
             module: *mut OptixModule,
+        ) -> OptixResult,
+    >,
+    pub optixModuleCreateWithTasks: ::std::option::Option<
+        unsafe extern "C" fn(
+            context: OptixDeviceContext,
+            moduleCompileOptions: *const OptixModuleCompileOptions,
+            pipelineCompileOptions: *const OptixPipelineCompileOptions,
+            input: *const ::std::os::raw::c_char,
+            inputSize: size_t,
+            logString: *mut ::std::os::raw::c_char,
+            logStringSize: *mut size_t,
+            module: *mut OptixModule,
+            firstTask: *mut OptixTask,
+        ) -> OptixResult,
+    >,
+    pub optixModuleGetCompilationState: ::std::option::Option<
+        unsafe extern "C" fn(
+            module: OptixModule,
+            state: *mut OptixModuleCompileState,
         ) -> OptixResult,
     >,
     pub optixModuleDestroy:
@@ -1341,6 +1915,14 @@ pub struct OptixFunctionTable {
             pipelineCompileOptions: *const OptixPipelineCompileOptions,
             builtinISOptions: *const OptixBuiltinISOptions,
             builtinModule: *mut OptixModule,
+        ) -> OptixResult,
+    >,
+    pub optixTaskExecute: ::std::option::Option<
+        unsafe extern "C" fn(
+            task: OptixTask,
+            additionalTasks: *mut OptixTask,
+            maxNumAdditionalTasks: ::std::os::raw::c_uint,
+            numAdditionalTasksCreated: *mut ::std::os::raw::c_uint,
         ) -> OptixResult,
     >,
     pub optixProgramGroupCreate: ::std::option::Option<
@@ -1360,6 +1942,7 @@ pub struct OptixFunctionTable {
         unsafe extern "C" fn(
             programGroup: OptixProgramGroup,
             stackSizes: *mut OptixStackSizes,
+            pipeline: OptixPipeline,
         ) -> OptixResult,
     >,
     pub optixPipelineCreate: ::std::option::Option<
@@ -1414,13 +1997,13 @@ pub struct OptixFunctionTable {
         unsafe extern "C" fn(
             context: OptixDeviceContext,
             handle: OptixTraversableHandle,
-            info: *mut OptixAccelRelocationInfo,
+            info: *mut OptixRelocationInfo,
         ) -> OptixResult,
     >,
-    pub optixAccelCheckRelocationCompatibility: ::std::option::Option<
+    pub optixCheckRelocationCompatibility: ::std::option::Option<
         unsafe extern "C" fn(
             context: OptixDeviceContext,
-            info: *const OptixAccelRelocationInfo,
+            info: *const OptixRelocationInfo,
             compatible: *mut ::std::os::raw::c_int,
         ) -> OptixResult,
     >,
@@ -1428,9 +2011,9 @@ pub struct OptixFunctionTable {
         unsafe extern "C" fn(
             context: OptixDeviceContext,
             stream: CUstream,
-            info: *const OptixAccelRelocationInfo,
-            instanceTraversableHandles: CUdeviceptr,
-            numInstanceTraversableHandles: size_t,
+            info: *const OptixRelocationInfo,
+            relocateInputs: *const OptixRelocateInput,
+            numRelocateInputs: size_t,
             targetAccel: CUdeviceptr,
             targetAccelSizeInBytes: size_t,
             targetHandle: *mut OptixTraversableHandle,
@@ -1446,12 +2029,66 @@ pub struct OptixFunctionTable {
             outputHandle: *mut OptixTraversableHandle,
         ) -> OptixResult,
     >,
+    pub optixAccelEmitProperty: ::std::option::Option<
+        unsafe extern "C" fn(
+            context: OptixDeviceContext,
+            stream: CUstream,
+            handle: OptixTraversableHandle,
+            emittedProperty: *const OptixAccelEmitDesc,
+        ) -> OptixResult,
+    >,
     pub optixConvertPointerToTraversableHandle: ::std::option::Option<
         unsafe extern "C" fn(
             onDevice: OptixDeviceContext,
             pointer: CUdeviceptr,
             traversableType: OptixTraversableType,
             traversableHandle: *mut OptixTraversableHandle,
+        ) -> OptixResult,
+    >,
+    pub optixOpacityMicromapArrayComputeMemoryUsage: ::std::option::Option<
+        unsafe extern "C" fn(
+            context: OptixDeviceContext,
+            buildInput: *const OptixOpacityMicromapArrayBuildInput,
+            bufferSizes: *mut OptixMicromapBufferSizes,
+        ) -> OptixResult,
+    >,
+    pub optixOpacityMicromapArrayBuild: ::std::option::Option<
+        unsafe extern "C" fn(
+            context: OptixDeviceContext,
+            stream: CUstream,
+            buildInput: *const OptixOpacityMicromapArrayBuildInput,
+            buffers: *const OptixMicromapBuffers,
+        ) -> OptixResult,
+    >,
+    pub optixOpacityMicromapArrayGetRelocationInfo: ::std::option::Option<
+        unsafe extern "C" fn(
+            context: OptixDeviceContext,
+            opacityMicromapArray: CUdeviceptr,
+            info: *mut OptixRelocationInfo,
+        ) -> OptixResult,
+    >,
+    pub optixOpacityMicromapArrayRelocate: ::std::option::Option<
+        unsafe extern "C" fn(
+            context: OptixDeviceContext,
+            stream: CUstream,
+            info: *const OptixRelocationInfo,
+            targetOpacityMicromapArray: CUdeviceptr,
+            targetOpacityMicromapArraySizeInBytes: size_t,
+        ) -> OptixResult,
+    >,
+    pub optixDisplacementMicromapArrayComputeMemoryUsage: ::std::option::Option<
+        unsafe extern "C" fn(
+            context: OptixDeviceContext,
+            buildInput: *const OptixDisplacementMicromapArrayBuildInput,
+            bufferSizes: *mut OptixMicromapBufferSizes,
+        ) -> OptixResult,
+    >,
+    pub optixDisplacementMicromapArrayBuild: ::std::option::Option<
+        unsafe extern "C" fn(
+            context: OptixDeviceContext,
+            stream: CUstream,
+            buildInput: *const OptixDisplacementMicromapArrayBuildInput,
+            buffers: *const OptixMicromapBuffers,
         ) -> OptixResult,
     >,
     pub optixSbtRecordPackHeader: ::std::option::Option<
@@ -1554,10 +2191,10 @@ pub const OptixInstanceByteAlignment: size_t = 16;
 pub const OptixAabbBufferByteAlignment: size_t = 8;
 pub const OptixGeometryTransformByteAlignment: size_t = 16;
 pub const OptixTransformByteAlignment: size_t = 64;
-pub const OptixVersion: size_t = 70300;
+pub const OptixVersion: size_t = 70700;
 pub const OptixBuildInputSize: size_t = 1032;
 pub const OptixShaderBindingTableSize: size_t = 64;
-#[repr(i32)]
+#[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum OptixGeometryFlags {
     None = 0,
