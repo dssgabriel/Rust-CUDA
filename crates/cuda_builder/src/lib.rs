@@ -1,4 +1,5 @@
-//! Utility crate for easily building CUDA crates using rustc_codegen_nvvm. Derived from rust-gpu's spirv_builder.
+//! Utility crate for easily building CUDA crates using the `rustc_codegen_nvvm`.
+//! Derived from [EmbarkStudios/rust-gpu's `spirv_builder`](https://github.com/EmbarkStudios/rust-gpu/tree/main/crates/spirv-builder).
 
 pub use nvvm::*;
 use serde::Deserialize;
@@ -47,7 +48,7 @@ impl DebugInfo {
         match self {
             DebugInfo::None => unreachable!(),
             DebugInfo::LineTables => ("-generate-line-info".into(), "-Cdebuginfo=1".into()),
-            // DebugInfo::Full => ("-g".into(), "-Cdebuginfo=2".into()),
+            DebugInfo::Full => ("-g".into(), "-Cdebuginfo=2".into()),
         }
     }
 }
@@ -57,91 +58,115 @@ pub enum EmitOption {
     Bitcode,
 }
 
-/// A builder for easily compiling Rust GPU crates in build.rs
+/// A builder for easily compiling Rust GPU crates in `build.rs` scripts.
 pub struct CudaBuilder {
+    /// Path to the GPU crate.
     path_to_crate: PathBuf,
-    /// Whether to compile the gpu crate for release.
-    /// `true` by default.
+
+    /// Whether to build the GPU crate for release.
+    /// Default value: `true`.
     pub release: bool,
-    /// An optional path to copy the final ptx file to.
+
+    /// An optional path to copy the final PTX file to.
     pub ptx_file_copy_path: Option<PathBuf>,
 
-    /// Whether to generate debug line number info.
-    /// This defaults to `true`, but nothing will be generated
-    /// if the gpu crate is built as release.
+    /// Whether to generate debug line number information.
+    /// Default value: `true`
+    /// NOTE: No debug line information will be generated if the GPU crate is built for release.
     pub generate_line_info: bool,
-    /// Whether to run libnvvm optimizations. This defaults to `false`
-    /// but will be set to `true` if release is specified.
+
+    /// Whether to run `libNVVM` optimizations.
+    /// Default value: `false`.
+    /// NOTE: This will automatically be set to `true` if the GPU crate is built for release.
     pub nvvm_opts: bool,
-    /// The virtual compute architecture to target for PTX generation. This
-    /// dictates how certain things are codegenned and may affect performance
-    /// and/or which gpus the code can run on.
+
+    /// The virtual compute architecture to target for PTX generation.
+    /// This dictates how certain things are codegenned and may affect performance and/or which GPUs
+    /// the code can run on.
     ///
-    /// You should generally try to pick an arch that will work with most
-    /// GPUs you want your program to work with. Make sure to also
-    /// use an appropriate compute arch if you are using recent features
-    /// such as tensor cores (which need at least 7.x).
+    /// You should generally try to pick an architecture that will work with GPUs you need your
+    /// program to work with. Make sure to also use an appropriate compute architecture if you are
+    /// using recent features such as tensor cores (which need at least 7.x).
     ///
-    /// If you are unsure, either leave this option to default, or pick something around 5.2 to 7.x.
+    /// Default value: `Compute61`.
+    /// This value corresponds to Pascal architecture GPUs, such as the GTX 1030, GTX 1050, GTX 1080,
+    /// Tesla P40, etc... as Maxwell (5.x) is deprecated in CUDA 12. Moreover, 6.x contains support
+    /// for things like `f64` atomic add and half-precision floating-point operations.
     ///
-    /// You can find a list of features supported on each arch and a list of GPUs for every
-    /// arch [`here`](https://en.wikipedia.org/wiki/CUDA#Version_features_and_specifications).
+    /// If you are unsure, either leave this option to default, or pick something between
+    /// `Compute52` and `Compute7x`.
     ///
-    /// NOTE that this does not necessarily mean that code using a certain capability
-    /// will not work on older capabilities. It means that if it uses certain
-    /// features it may not work.
+    /// You can find a list of features supported on each architecture and a list of GPUs for every
+    /// architecture [`here`](https://en.wikipedia.org/wiki/CUDA#Version_features_and_specifications).
     ///
-    /// This currently defaults to `6.1`. Which corresponds to Pascal, GPUs such as
-    /// the GTX 1030, GTX 1050, GTX 1080, Tesla P40, etc. We default to this because
-    /// Maxwell (5.x) will be deprecated in CUDA 12 and we anticipate for that. Moreover,
-    /// `6.x` contains support for things like f64 atomic add and half precision float ops.
+    /// NOTE: This does not necessarily mean that code using a certain compute capability will not
+    /// work on older compute capabilities. It only means that if it uses certain features it may
+    /// not work.
     pub arch: NvvmArch,
-    /// Flush denormal values to zero when performing single-precision floating point operations.
-    /// `false` by default.
+
+    /// Whether to enable flushing of denormal values to zero when performing single-precision
+    /// floating-point operations.
+    /// Default value: `false`.
     pub ftz: bool,
-    /// Use a fast approximation for single-precision floating point square root.
-    /// `false` by default.
+
+    /// Whether to enable fast approximation for single-precision floating-point square root.
+    /// Default value: `false`.
     pub fast_sqrt: bool,
-    /// Use a fast approximation for single-precision floating point division.
-    /// `false` by default.
+
+    /// Whether to enable fast approximation for single-precision floating-point division.
+    /// Default value: `false`.
     pub fast_div: bool,
-    /// Enable FMA (fused multiply-add) contraction.
-    /// `true` by default.
+
+    /// Wheter to enable Fused Multiply-Add (FMA) contraction.
+    /// Default value: `true`.
     pub fma_contraction: bool,
-    /// Whether to emit a certain IR. Emitting LLVM IR is useful to debug any codegen
-    /// issues. If you are submitting a bug report try to include the LLVM IR file of
-    /// the program that contains the offending function.
+
+    /// Whether to emit a certain Intermediate Representation (IR). Emitting LLVM IR is useful to
+    /// debug any codegen issues.
+    /// If you are submitting a bug report, try to include the LLVM IR file of the program that
+    /// contains the offending function.
     pub emit: Option<EmitOption>,
-    /// Indicates to the codegen that the program is being compiled for use in the OptiX hardware raytracing library.
+
+    /// Indicates to the codegen that the program is being compiled for use in the OptiX hardware
+    /// raytracing library.
     /// This does a couple of things:
     /// - Aggressively inlines all functions.
     /// - Immediately aborts on panic, not going through the panic handler or panicking machinery.
-    /// - sets the `optix` cfg.
+    /// - sets the `optix` configuration.
     ///
-    /// Code compiled with this option should always work under CUDA, but it might not be the most efficient or practical.
+    /// Code compiled with this option should always work under CUDA, but it might not be the most
+    /// efficient or practical.
     ///
-    /// `false` by default.
+    /// Default value: `false`.
     pub optix: bool,
-    /// Whether to override calls to [`libm`](https://docs.rs/libm/latest/libm/) with calls to libdevice intrinsics.
+
+    /// Whether to override calls to [`libm`](https://docs.rs/libm/latest/libm/) with calls to
+    /// `libdevice` intrinsics.
     ///
-    /// Libm is used by no_std crates for functions such as sin, cos, fabs, etc. However, CUDA provides
-    /// extremely fast GPU-specific implementations of such functions through `libdevice`. Therefore, the codegen
-    /// exposes the option to automatically override any calls to libm functions with calls to libdevice functions.
-    /// However, this means the overriden functions are likely to not be deterministic, so if you rely on strict
-    /// determinism in things like `rapier`, then it may be helpful to disable such a feature.
+    /// `libm` is used by `no_std` crates for functions such as `sin`, `cos`, `fabs`, etc. However,
+    /// CUDA provides fast GPU-specific implementations of such functions through `libdevice`.
+    /// Therefore, the codegen exposes the option to automatically override any calls to `libm`
+    /// functions with calls to `libdevice` functions.
+    /// However, this means the overriden functions are likely to not be deterministic, so if you
+    /// rely on strict determinism in things like `rapier`, then it may be helpful to disable such a
+    /// feature.
     ///
-    /// `true` by default.
+    /// Default value: `true`.
     pub override_libm: bool,
-    /// Whether to generate any debug info and what level of info to generate.
+
+    /// Whether to generate any debug information and what level of information to generate.
     pub debug: DebugInfo,
+
     /// Additional arguments passed to cargo during `cargo build`.
     pub build_args: Vec<String>,
-    /// An optional path where to dump LLVM IR of the final output the codegen will feed to libnvvm. Usually
-    /// used for debugging.
+
+    /// An optional path where to dump LLVM IR of the final output the codegen will feed to
+    /// `libNVVM`. Usually used for debugging.
     pub final_module_path: Option<PathBuf>,
 }
 
 impl CudaBuilder {
+    /// Create a new `CudaBuilder` structure from a given Rust-CUDA crate path.
     pub fn new(path_to_crate_root: impl AsRef<Path>) -> Self {
         Self {
             path_to_crate: path_to_crate_root.as_ref().to_owned(),
@@ -149,7 +174,7 @@ impl CudaBuilder {
             ptx_file_copy_path: None,
             generate_line_info: true,
             nvvm_opts: true,
-            arch: NvvmArch::Compute61,
+            arch: NvvmArch::default(),
             ftz: false,
             fast_sqrt: false,
             fast_div: false,
@@ -163,138 +188,116 @@ impl CudaBuilder {
         }
     }
 
-    /// Additional arguments passed to cargo during `cargo build`.
+    /// Set additional arguments passed to cargo during `cargo build`.
     pub fn build_args(mut self, args: &[impl AsRef<str>]) -> Self {
         self.build_args
             .extend(args.iter().map(|s| s.as_ref().to_owned()));
         self
     }
 
-    /// Whether to generate any debug info and what level of info to generate.
+    /// Set the level of debug information generate.
     pub fn debug(mut self, debug: DebugInfo) -> Self {
         self.debug = debug;
         self
     }
 
-    /// Whether to compile the gpu crate for release.
+    /// Set whether or not to build to the GPU crate for release.
     pub fn release(mut self, release: bool) -> Self {
         self.release = release;
         self.nvvm_opts = release;
+        // self.ftz = release;
+        // self.fast_div = release;
+        // self.fast_sqrt = release;
+        // self.fma_contraction = release;
         self
     }
 
-    /// Whether to generate debug line number info.
-    /// This defaults to `true`, but nothing will be generated
-    /// if the gpu crate is built as release.
+    /// Set whether or not to generate debug line number info.
     pub fn generate_line_info(mut self, generate_line_info: bool) -> Self {
         self.generate_line_info = generate_line_info;
         self
     }
 
-    /// Whether to run libnvvm optimizations. This defaults to `false`
-    /// but will be set to `true` if release is specified.
+    /// Set whether or not to enable `libNVVM` optimizations.
     pub fn nvvm_opts(mut self, nvvm_opts: bool) -> Self {
         self.nvvm_opts = nvvm_opts;
         self
     }
 
-    /// The virtual compute architecture to target for PTX generation. This
-    /// dictates how certain things are codegenned and may affect performance
-    /// and/or which gpus the code can run on.
-    ///
-    /// You should generally try to pick an arch that will work with most
-    /// GPUs you want your program to work with. Make sure to also
-    /// use an appropriate compute arch if you are using recent features
-    /// such as tensor cores (which need at least 7.x).
-    ///
-    /// If you are unsure, either leave this option to default, or pick something around 5.2 to 7.x.
-    ///
-    /// You can find a list of features supported on each arch and a list of GPUs for every
-    /// arch [`here`](https://en.wikipedia.org/wiki/CUDA#Version_features_and_specifications).
-    ///
-    /// NOTE that this does not necessarily mean that code using a certain capability
-    /// will not work on older capabilities. It means that if it uses certain
-    /// features it may not work.
+    /// Set the virtual compute architecture to target for PTX generation.
     pub fn arch(mut self, arch: NvvmArch) -> Self {
         self.arch = arch;
         self
     }
 
-    /// Flush denormal values to zero when performing single-precision floating point operations.
+    /// Set whether or not to flush denormal values to zero when performing single-precision
+    /// floating-point operations.
     pub fn ftz(mut self, ftz: bool) -> Self {
         self.ftz = ftz;
         self
     }
 
-    /// Use a fast approximation for single-precision floating point square root.
+    /// Set whether or not to enable fast approximation for single-precision floating-point square
+    /// root.
     pub fn fast_sqrt(mut self, fast_sqrt: bool) -> Self {
         self.fast_sqrt = fast_sqrt;
         self
     }
 
-    /// Use a fast approximation for single-precision floating point division.
+    /// Set whether or not to enable fast approximation for single-precision floating-point
+    /// division.
     pub fn fast_div(mut self, fast_div: bool) -> Self {
         self.fast_div = fast_div;
         self
     }
 
-    /// Enable FMA (fused multiply-add) contraction.
+    /// Set whether or not to enable FMA contraction.
     pub fn fma_contraction(mut self, fma_contraction: bool) -> Self {
         self.fma_contraction = fma_contraction;
         self
     }
 
-    /// Emit LLVM IR, the exact same as rustc's `--emit=llvm-ir`.
+    /// Set whether or not to emit LLVM IR, the exact same as rustc's `--emit=llvm-ir`.
     pub fn emit_llvm_ir(mut self, emit_llvm_ir: bool) -> Self {
         self.emit = emit_llvm_ir.then(|| EmitOption::LlvmIr);
         self
     }
 
-    /// Emit LLVM Bitcode, the exact same as rustc's `--emit=llvm-bc`.
+    /// Set whether or not to emit LLVM Bitcode, the exact same as rustc's `--emit=llvm-bc`.
     pub fn emit_llvm_bitcode(mut self, emit_llvm_bitcode: bool) -> Self {
         self.emit = emit_llvm_bitcode.then(|| EmitOption::Bitcode);
         self
     }
 
-    /// Copy the final ptx file to this location once finished building.
+    /// Copy the final PTX file to the given location once finished building.
     pub fn copy_to(mut self, path: impl AsRef<Path>) -> Self {
         self.ptx_file_copy_path = Some(path.as_ref().to_path_buf());
         self
     }
 
-    /// Indicates to the codegen that the program is being compiled for use in the OptiX hardware raytracing library.
-    /// This does a couple of things:
-    /// - Aggressively inlines all functions. (not currently implemented but will be in the future)
-    /// - Immediately aborts on panic, not going through the panic handler or panicking machinery.
-    /// - sets the `optix` cfg.
-    ///
-    /// Code compiled with this option should always work under CUDA, but it might not be the most efficient or practical.
+    /// Set whether or not the program is being built for use in the OptiX hardware raytracing
+    /// library.
     pub fn optix(mut self, optix: bool) -> Self {
         self.optix = optix;
         self
     }
 
-    /// Whether to override calls to [`libm`](https://docs.rs/libm/latest/libm/) with calls to libdevice intrinsics.
-    ///
-    /// Libm is used by no_std crates for functions such as sin, cos, fabs, etc. However, CUDA provides
-    /// extremely fast GPU-specific implementations of such functions through `libdevice`. Therefore, the codegen
-    /// exposes the option to automatically override any calls to libm functions with calls to libdevice functions.
-    /// However, this means the overriden functions are likely to not be deterministic, so if you rely on strict
-    /// determinism in things like `rapier`, then it may be helpful to disable such a feature.
+    /// Set whether or not to override calls to `libm` with calls to `libdevice` intrinsics.
     pub fn override_libm(mut self, override_libm: bool) -> Self {
         self.override_libm = override_libm;
         self
     }
 
-    /// An optional path where to dump LLVM IR of the final output the codegen will feed to libnvvm. Usually
-    /// used for debugging.
+    /// Set an optional path where to dump the LLVM IR of the final output the codegen will feed to
+    /// `libNVVM`.
     pub fn final_module_path(mut self, path: impl AsRef<Path>) -> Self {
         self.final_module_path = Some(path.as_ref().to_path_buf());
         self
     }
 
-    /// Runs rustc to build the codegen and codegens the gpu crate, returning the path of the final
-    /// ptx file. If [`ptx_file_copy_path`](Self::ptx_file_copy_path) is set, this returns the copied path.
+    /// Invoke `rustc` to build the codegen and codegens the GPU crate, returning the path of the
+    /// final PTX file. If [`ptx_file_copy_path`](Self::ptx_file_copy_path) is set, this returns
+    /// the copied path.
     pub fn build(self) -> Result<PathBuf, CudaBuilderError> {
         println!("cargo:rerun-if-changed={}", self.path_to_crate.display());
         let path = invoke_rustc(&self)?;
@@ -352,19 +355,14 @@ fn get_new_path_var() -> OsString {
         find_cuda_helper::find_cuda_lib_dirs()
     };
     paths.extend(possible_paths);
-    env::join_paths(&paths).expect("Failed to join paths for PATH")
+    env::join_paths(&paths).expect("Failed to join paths for library path")
 }
 
 /// Joins strings together while ensuring none of the strings contain the separator.
 fn join_checking_for_separators(strings: Vec<impl Borrow<str>>, sep: &str) -> String {
     for s in &strings {
         let s = s.borrow();
-        assert!(
-            !s.contains(sep),
-            "{:?} may not contain separator {:?}",
-            s,
-            sep
-        );
+        assert!(!s.contains(sep), "{s:?} may not contain separator {sep:?}");
     }
     strings.join(sep)
 }
@@ -408,7 +406,7 @@ fn invoke_rustc(builder: &CudaBuilder) -> Result<PathBuf, CudaBuilderError> {
     }
 
     if !builder.fma_contraction {
-        llvm_args.push("-fma=0".to_string());
+        llvm_args.push("-fmad=0".to_string());
     }
 
     if builder.override_libm {
@@ -450,7 +448,7 @@ fn invoke_rustc(builder: &CudaBuilder) -> Result<PathBuf, CudaBuilderError> {
     }
 
     // TODO(RDambrosio016): Remove this once we can get meaningful error messages in panic to work.
-    // for now we enable it to remove some useless indirect calls in the ptx.
+    // For now we enable it to remove some useless indirect calls in the PTX.
     cargo.arg("-Zbuild-std-features=panic_immediate_abort");
 
     if builder.optix {
@@ -460,10 +458,10 @@ fn invoke_rustc(builder: &CudaBuilder) -> Result<PathBuf, CudaBuilderError> {
         cargo.arg("optix=\"1\"");
     }
 
-    // If we're nested in `cargo` invocation, use a different `--target-dir`,
-    // to avoid waiting on the same lock (which effectively dead-locks us).
-    // This also helps with e.g. RLS, which uses `--target target/rls`,
-    // so we'll have a separate `target/rls/cuda-builder` for it.
+    // If we're nested in `cargo` invocation, use a different `--target-dir`, to avoid waiting on
+    // the same lock (which effectively dead-locks us).
+    // This also helps with e.g. RLS, which uses `--target target/rls`, so we'll have a separate
+    // `target/rls/cuda-builder` for it.
     if let (Ok(profile), Some(mut dir)) = (
         env::var("PROFILE"),
         env::var_os("OUT_DIR").map(PathBuf::from),
@@ -493,13 +491,12 @@ fn invoke_rustc(builder: &CudaBuilder) -> Result<PathBuf, CudaBuilderError> {
         .output()
         .expect("failed to execute cargo build");
 
-    // `get_last_artifact` has the side-effect of printing invalid lines, so
-    // we do that even in case of an error, to let through any useful messages
-    // that ended up on stdout instead of stderr.
+    // `get_last_artifact` has the side-effect of printing invalid lines, so we do that even in case
+    // of an error to let through any useful messages that ended up in `stdout` instead of `stderr`.
     let stdout = String::from_utf8(build.stdout).unwrap();
     let artifact = get_last_artifact(&stdout);
     if build.status.success() {
-        Ok(artifact.expect("Artifact created when compilation succeeded (Did you forget to mark the crate-type as lib/rlib?)"))
+        Ok(artifact.expect("Artifact created when compilation succeeded (did you forget to mark the crate-type as `lib`/`rlib`?)"))
     } else {
         Err(CudaBuilderError::BuildFailed)
     }
