@@ -267,7 +267,7 @@ impl FromStr for NvvmOption {
     }
 }
 
-/// Nvvm architecture, default is `Compute52`
+/// Nvvm architecture, default is `Compute61`
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NvvmArch {
     /// Kepler architecture (deprecated since CUDA 9).
@@ -314,7 +314,7 @@ impl Display for NvvmArch {
 
 impl Default for NvvmArch {
     fn default() -> Self {
-        Self::Compute52
+        Self::Compute61
     }
 }
 
