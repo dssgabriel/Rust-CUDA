@@ -48,7 +48,7 @@ impl DebugInfo {
         match self {
             DebugInfo::None => unreachable!(),
             DebugInfo::LineTables => ("-generate-line-info".into(), "-Cdebuginfo=1".into()),
-            DebugInfo::Full => ("-g".into(), "-Cdebuginfo=2".into()),
+            // DebugInfo::Full => ("-g".into(), "-Cdebuginfo=2".into()),
         }
     }
 }
