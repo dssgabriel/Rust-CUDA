@@ -71,8 +71,12 @@ pub struct TargetDirective {
 #[strum(ascii_case_insensitive)]
 pub enum TargetSpecifier {
     // target architectures
+    Sm90,
+
     Sm80,
     Sm86,
+    Sm87,
+    Sm89,
 
     Sm70,
     Sm72,
