@@ -1,4 +1,6 @@
 // use std::hint::unreachable_unchecked;
+#[cfg(target_os = "cuda")]
+use core::arch::asm;
 use cuda_std::gpu_only;
 use glam::{Vec3, Vec4};
 
@@ -96,6 +98,7 @@ fn matrix_motion_transform_from_handle_ptr(
 bitflags::bitflags! {
     /// Possible motion flags.
     #[repr(transparent)]
+    #[derive(Debug, Clone, PartialEq)]
     pub struct MotionFlags: u32 {
         const START_VANISH = 1 << 0;
         const END_VANISH   = 1 << 1;
